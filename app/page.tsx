@@ -54,7 +54,7 @@ export default function Hackenbush() {
           
           {/* Game Board - SVG Component */}
           <SvgHackenbush
-            svgPath="/assets/games/test.svg"
+            svgPath="/assets/games/test2.svg"
             onGameStateChange={handleGameStateChange}
             currentPlayer={currentPlayer}
             resetTrigger={resetTrigger}
