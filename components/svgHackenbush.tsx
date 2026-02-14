@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { analyzeBlueRedHackenbush, formatDyadic, dyadicToDecimal, DyadicNumber } from '@/lib/hackenbush';
 
 // Type definitions
 export interface Edge {
@@ -16,6 +17,11 @@ export interface GameState {
   currentPlayer: 'red' | 'blue';
   gameOver: boolean;
   winner: 'red' | 'blue' | null;
+  // Game analysis fields
+  gameValue: DyadicNumber | null;
+  gameValueDecimal: number | null;
+  optimalMove: string | null;
+  isWinning: boolean;
 }
 
 interface SvgHackenbushProps {
@@ -421,22 +427,71 @@ export default function SvgHackenbush({
     console.log('✓ Visual styles updated');
   }, [edges, currentPlayer, gameOver]);
 
-  // Notify parent of game state changes
+  /// Analyze game position after every move and update infos
   useEffect(() => {
-    console.log('=== GAME STATE CHANGE EFFECT ===');
+    console.log('=== ANALYZING GAME POSITION ===');
     
-    if (onGameStateChange) {
-      const gameState: GameState = {
+    if (edges.length === 0 || gameOver) {
+      console.log('Skipping analysis - no edges or game over');
+
+      const completeGameState: GameState = {
         edges,
         currentPlayer,
         gameOver,
         winner,
+        gameValue: {numerator: 0, denominator: 0},
+        gameValueDecimal: 0,
+        optimalMove: null,
+        isWinning: false,
+      };
+
+      if (onGameStateChange) {
+        onGameStateChange(completeGameState);
+      }
+
+      return;
+    }
+
+    // Convert current state to position format for analysis
+    const position = {
+      edges: edges
+        .filter(e => e.color === 'red' || e.color === 'blue') // Only red and blue edges
+        .map(edge => ({
+          id: edge.id,
+          from: edge.from,
+          to: edge.to,
+          color: edge.color as 'red' | 'blue',
+          active: edge.active
+        })),
+      vertices: vertices
+    };
+
+    const analysis = analyzeBlueRedHackenbush(position, currentPlayer);
+    
+    console.log('Game Value:', formatDyadic(analysis.value), '=', dyadicToDecimal(analysis.value));
+    console.log('Current Player:', currentPlayer);
+    console.log('Is Winning:', analysis.winning);
+    console.log('Optimal Move:', analysis.optimalMove);
+    
+    // Notify parent with complete game state including analysis
+    if (onGameStateChange) {
+      const completeGameState: GameState = {
+        edges,
+        currentPlayer,
+        gameOver,
+        winner,
+        gameValue: analysis.value,
+        gameValueDecimal: dyadicToDecimal(analysis.value),
+        optimalMove: analysis.optimalMove,
+        isWinning: analysis.winning
       };
       
-      console.log('Notifying parent of game state change:', gameState);
-      onGameStateChange(gameState);
+      console.log('✓ Sending complete game state to parent');
+      onGameStateChange(completeGameState);
     }
-  }, [edges, currentPlayer, gameOver, winner, onGameStateChange]);
+    
+    console.log('=== ANALYSIS COMPLETE ===');
+  }, [edges, currentPlayer, gameOver, vertices, onGameStateChange]);
 
   // Don't render on server
   if (!mounted) {
@@ -476,8 +531,7 @@ export default function SvgHackenbush({
     <div
       ref={containerRef}
       style={{
-        width: '100%',
-        maxWidth: 'min(95vw, 600px)',
+        width: 'min(55vw, 55vh)',
         margin: '0 auto',
         aspectRatio: '1'
       }}
