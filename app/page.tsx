@@ -49,30 +49,6 @@ export default function Hackenbush() {
       </Container>
 
       <Container centerContent={true}>
-        <Text textStyle="xs" color="fg.muted" marginY={2}>
-          Jogo do dia: 13 de fevereiro de 2026.
-        </Text>
-        
-        {!gameOver ? (
-          <Text textStyle="md">Jogador atual: 
-            <Badge 
-              variant="surface"
-              marginX={1}
-              size="md"
-              colorPalette={currentPlayer}
-            >
-              <b>{currentPlayer.toUpperCase()}</b>
-            </Badge>
-          </Text>
-        ) : (
-          <Badge 
-            size="md"
-            variant="surface"
-            colorPalette={winner ?? undefined}
-          >
-            <b>{winner?.toUpperCase()} WINS! 🎉</b>
-          </Badge>
-        )}
 
         <Flex direction="column" alignItems="center" paddingY={3} align="stretch" justifyContent="space-between" height="100%">
           
@@ -84,7 +60,32 @@ export default function Hackenbush() {
             resetTrigger={resetTrigger}
           />
 
-          <HStack gap={3} marginTop={4}>
+          <Text textStyle="xs" color="fg.muted" marginY={2}>
+          Jogo do dia: 13 de fevereiro de 2026.
+        </Text>
+        
+          {!gameOver ? (
+            <Text textStyle="md">Jogador atual: 
+              <Badge 
+                variant="surface"
+                marginX={1}
+                size="md"
+                colorPalette={currentPlayer}
+              >
+                <b>{currentPlayer.toUpperCase()}</b>
+              </Badge>
+            </Text>
+          ) : (
+            <Badge 
+              size="md"
+              variant="surface"
+              colorPalette={winner ?? undefined}
+            >
+              <b>{winner?.toUpperCase()} WINS! 🎉</b>
+            </Badge>
+          )}
+
+          <HStack gap={3} marginTop={4} wrap="wrap">
             <Button variant="surface" colorPalette="gray">
               <FaBackward /> Voltar
             </Button>

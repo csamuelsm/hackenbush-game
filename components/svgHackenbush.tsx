@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Box } from '@chakra-ui/react';
 
 // Type definitions
 export interface Edge {
@@ -10,7 +9,6 @@ export interface Edge {
   to: string;
   color: 'red' | 'blue' | 'green';
   active: boolean;
-  element: Element;
 }
 
 export interface GameState {
@@ -43,7 +41,6 @@ export default function SvgHackenbush({
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [winner, setWinner] = useState<'red' | 'blue' | null>(null);
   
-  const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Ensure component only renders on client
@@ -53,10 +50,15 @@ export default function SvgHackenbush({
 
   // Load SVG file
   useEffect(() => {
+    console.log('=== LOAD SVG EFFECT TRIGGERED ===');
+    console.log('svgPath:', svgPath);
+    
     const loadSvg = async () => {
       try {
+        console.log('Fetching SVG from:', svgPath);
         const response = await fetch(svgPath);
         const text = await response.text();
+        console.log('SVG loaded, length:', text.length);
         setSvgContent(text);
       } catch (error) {
         console.error('Error loading SVG:', error);
@@ -65,229 +67,420 @@ export default function SvgHackenbush({
     loadSvg();
   }, [svgPath]);
 
-  // Parse SVG and extract game elements
+  // Inject SVG content only once
   useEffect(() => {
-    if (!svgContent || !svgRef.current) return;
-
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-    const svgElement = svgDoc.documentElement;
-
-    // Extract vertices
-    const vertexElements = svgElement.querySelectorAll('[id^="vertex-"]');
-    const vertexSet = new Set<string>();
-    vertexElements.forEach((vertex) => {
-      const id = vertex.id.replace('vertex-', '');
-      vertexSet.add(id);
-    });
-    setVertices(vertexSet);
-
-    // Extract edges
-    const edgeElements = svgElement.querySelectorAll('[id^="edge-"]');
-    const edgeList: Edge[] = [];
+    if (!svgContent || !containerRef.current) return;
     
-    edgeElements.forEach((edgeGroup) => {
-      const id = edgeGroup.id;
-      // Parse: edge-{color}-{from}-{to}
-      const parts = id.split('-');
-      if (parts.length >= 4) {
-        const color = parts[1] as 'red' | 'blue' | 'green';
-        const from = parts[2];
-        const to = parts[3];
-        
-        edgeList.push({
-          id,
-          from,
-          to,
-          color,
-          active: true,
-          element: edgeGroup,
+    console.log('=== INJECTING SVG INTO DOM ===');
+    // Only inject if container is empty
+    if (containerRef.current.innerHTML === '') {
+      containerRef.current.innerHTML = svgContent;
+      console.log('✓ SVG injected into DOM');
+
+      // Apply vector-effect to all SVG elements to keep stroke width consistent
+      const svgContainer = containerRef.current.querySelector('svg');
+      if (svgContainer) {
+        const allElements = svgContainer.querySelectorAll('*');
+        allElements.forEach((element) => {
+          const svgElement = element as SVGElement;
+          svgElement.style.vectorEffect = 'non-scaling-stroke';
         });
+        console.log('✓ Applied non-scaling-stroke to all SVG elements');
       }
-    });
-    
-    setEdges(edgeList);
-    
-    console.log('Parsed vertices:', vertexSet);
-    console.log('Parsed edges:', edgeList);
+    } else {
+      console.log('SVG already in DOM, skipping injection');
+    }
   }, [svgContent]);
 
-  // Apply CSS styles to edges based on game state
+  // Parse SVG and extract game elements ONCE when SVG content loads
   useEffect(() => {
-    if (!svgRef.current || edges.length === 0) return;
+    console.log('=== PARSE SVG EFFECT TRIGGERED ===');
+    console.log('svgContent length:', svgContent.length);
+    console.log('containerRef.current:', !!containerRef.current);
+    
+    if (!svgContent || !containerRef.current) {
+      console.log('Skipping parse - missing svgContent or containerRef');
+      return;
+    }
 
-    // BFS to find all vertices connected to ground
-    const getConnectedVertices = (edgeList: Edge[]): Set<string> => {
-      const connected = new Set<string>(['ground']);
-      const activeEdges = edgeList.filter((e) => e.active);
-
-      let changed = true;
-      while (changed) {
-        changed = false;
-        for (const edge of activeEdges) {
-          if (connected.has(edge.from) && !connected.has(edge.to)) {
-            connected.add(edge.to);
-            changed = true;
-          }
-          if (connected.has(edge.to) && !connected.has(edge.from)) {
-            connected.add(edge.from);
-            changed = true;
-          }
-        }
+    // Wait a bit for DOM to be ready
+    setTimeout(() => {
+      console.log('Parse timeout fired');
+      const svgContainer = containerRef.current?.querySelector('svg');
+      console.log('SVG container found:', !!svgContainer);
+      
+      if (!svgContainer) {
+        console.error('SVG container not found!');
+        return;
       }
 
-      return connected;
-    };
+      console.log('Starting to parse SVG elements...');
 
-    const cleanupFunctions: (() => void)[] = [];
+      // Extract vertices
+      const vertexElements = svgContainer.querySelectorAll('[id^="vertex-"]');
+      console.log('Found vertex elements:', vertexElements.length);
+      const vertexSet = new Set<string>();
+      vertexElements.forEach((vertex) => {
+        const id = vertex.id.replace('vertex-', '');
+        vertexSet.add(id);
+      });
+      setVertices(vertexSet);
+      console.log('Vertices set:', vertexSet);
 
-    edges.forEach((edge) => {
-      const edgeElement = svgRef.current?.querySelector(`#${edge.id}`) as HTMLElement;
-      if (!edgeElement) return;
-
-      const children = edgeElement.querySelectorAll('*');
-      children.forEach((child) => {
-        const element = child as SVGElement;
-        
-        if (edge.active) {
-          // Active edge styles
-          element.style.opacity = '1';
-          element.style.filter = 'none';
-          element.style.transition = 'all 0.3s ease';
+      // Extract edges
+      const edgeElements = svgContainer.querySelectorAll('[id^="edge-"]');
+      console.log('Found edge elements:', edgeElements.length);
+      const edgeList: Edge[] = [];
+      
+      edgeElements.forEach((edgeGroup) => {
+        const id = edgeGroup.id;
+        const parts = id.split('-');
+        if (parts.length >= 4) {
+          const color = parts[1] as 'red' | 'blue' | 'green';
+          const from = parts[2];
+          const to = parts[3];
           
-          // Check if allowed for current player
-          const isAllowed = edge.color === currentPlayer || edge.color === 'green';
-          element.style.cursor = isAllowed && !gameOver ? 'pointer' : 'not-allowed';
-        } else {
-          // Inactive edge styles
-          element.style.opacity = '0.3';
-          element.style.filter = 'grayscale(100%)';
-          element.style.cursor = 'not-allowed';
+          edgeList.push({
+            id,
+            from,
+            to,
+            color,
+            active: true,
+          });
         }
       });
+      
+      console.log('Edge list created:', edgeList);
+      setEdges(edgeList);
+      console.log('=== PARSE COMPLETE ===');
+    }, 100);
+  }, [svgContent]);
 
-      // CSS hover effect using parent element
-      const handleMouseEnter = () => {
-        if (!edge.active || gameOver) return;
-        const isAllowed = edge.color === currentPlayer || edge.color === 'green';
-        if (!isAllowed) return;
-        
-        children.forEach((child) => {
-          const element = child as SVGElement;
-          element.style.opacity = '0.7';
-        });
-      };
+  // BFS to find all vertices connected to ground
+  const getConnectedVertices = (edgeList: Edge[]): Set<string> => {
+    const connected = new Set<string>(['ground']);
+    const activeEdges = edgeList.filter((e) => e.active);
 
-      const handleMouseLeave = () => {
-        if (!edge.active) return;
-        children.forEach((child) => {
-          const element = child as SVGElement;
-          element.style.opacity = '1';
-        });
-      };
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const edge of activeEdges) {
+        if (connected.has(edge.from) && !connected.has(edge.to)) {
+          connected.add(edge.to);
+          changed = true;
+        }
+        if (connected.has(edge.to) && !connected.has(edge.from)) {
+          connected.add(edge.from);
+          changed = true;
+        }
+      }
+    }
 
-      // Handle click
-      const handleClick = () => {
-        if (gameOver || !edge.active) return;
-        const isAllowed = edge.color === currentPlayer || edge.color === 'green';
-        if (!isAllowed) return;
+    return connected;
+  };
 
-        // Make edge inactive
-        const updatedEdges = edges.map((e) =>
-          e.id === edge.id ? { ...e, active: false } : e
-        );
+  // Single click handler using event delegation
+  useEffect(() => {
+    console.log('=== CLICK HANDLER EFFECT TRIGGERED ===');
+    console.log('containerRef.current:', !!containerRef.current);
+    console.log('edges.length:', edges.length);
+    console.log('currentPlayer:', currentPlayer);
+    console.log('gameOver:', gameOver);
+    
+    if (!containerRef.current || edges.length === 0) {
+      console.log('Skipping click handler setup - missing container or no edges');
+      return;
+    }
 
-        // Find disconnected edges and make them inactive
-        const connected = getConnectedVertices(updatedEdges);
-        const finalEdges = updatedEdges.map((e) => ({
-          ...e,
-          active: e.active && connected.has(e.from) && connected.has(e.to),
-        }));
+    const svgContainer = containerRef.current.querySelector('svg');
+    console.log('SVG container found for click handler:', !!svgContainer);
+    
+    if (!svgContainer) {
+      console.log('No SVG container, cannot setup click handler');
+      return;
+    }
 
-        setEdges(finalEdges);
-        
-        console.log(`Edge ${edge.id} removed by ${currentPlayer}`);
-        console.log('Connected vertices:', connected);
+    console.log('Setting up click and hover handlers on SVG container...');
 
-        // Switch player
-        const nextPlayer: 'red' | 'blue' = currentPlayer === 'red' ? 'blue' : 'red';
+    const handleSvgClick = (e: MouseEvent) => {
+      console.log('>>> CLICK EVENT FIRED <<<');
+      const target = e.target as SVGElement;
+      console.log('Click target:', target.tagName, target.id);
+      
+      // Find the edge group this element belongs to
+      let edgeGroup = target.closest('[id^="edge-"]') as SVGGElement;
+      console.log('Found edge group:', edgeGroup?.id);
+      
+      if (!edgeGroup) {
+        console.log('Click was not on an edge');
+        return;
+      }
+
+      const edgeId = edgeGroup.id;
+      console.log('Edge ID:', edgeId);
+      console.log('Current state - edges:', edges.length, 'player:', currentPlayer, 'gameOver:', gameOver);
+
+      if (gameOver) {
+        console.log('Game over, click ignored');
+        return;
+      }
+
+      const edge = edges.find(e => e.id === edgeId);
+      console.log('Edge found in state:', edge);
+      
+      if (!edge) {
+        console.log('Edge not found in state');
+        return;
+      }
+
+      if (!edge.active) {
+        console.log('Edge is inactive');
+        return;
+      }
+
+      const isAllowed = edge.color === currentPlayer || edge.color === 'green';
+      console.log(`Edge color: ${edge.color}, Current player: ${currentPlayer}, Is allowed: ${isAllowed}`);
+      
+      if (!isAllowed) {
+        console.log(`Edge color ${edge.color} not allowed for player ${currentPlayer}`);
+        return;
+      }
+
+      console.log('✓ Valid click! Processing...');
+
+      // Make edge inactive
+      const updatedEdges = edges.map((e) =>
+        e.id === edgeId ? { ...e, active: false } : e
+      );
+      console.log('Updated edges (before BFS):', updatedEdges.filter(e => !e.active).map(e => e.id));
+
+      // Find disconnected edges
+      const connected = getConnectedVertices(updatedEdges);
+      console.log('Connected vertices:', connected);
+      
+      const finalEdges = updatedEdges.map((e) => ({
+        ...e,
+        active: e.active && connected.has(e.from) && connected.has(e.to),
+      }));
+      console.log('Final edges (after BFS):', finalEdges.filter(e => !e.active).map(e => e.id));
+
+      setEdges(finalEdges);
+      console.log(`✓ Edge ${edgeId} removed by ${currentPlayer}`);
+
+      // Check if opponent has any valid moves
+      const nextPlayer: 'red' | 'blue' = currentPlayer === 'red' ? 'blue' : 'red';
+      const opponentHasMoves = finalEdges.some(
+        (e) => e.active && (e.color === nextPlayer || e.color === 'green')
+      );
+
+      if (!opponentHasMoves) {
+        // Current player wins!
+        console.log(`✓ ${currentPlayer.toUpperCase()} WINS! No moves left for ${nextPlayer}`);
+        setGameOver(true);
+        setWinner(currentPlayer);
+      } else {
+        // Switch to next player
         setCurrentPlayer(nextPlayer);
-        console.log(`Now it's ${nextPlayer}'s turn`);
-      };
+        console.log(`✓ Switched to ${nextPlayer}`);
+      }
+      
+      console.log('>>> CLICK PROCESSING COMPLETE <<<');
+    };
 
-      edgeElement.addEventListener('mouseenter', handleMouseEnter);
-      edgeElement.addEventListener('mouseleave', handleMouseLeave);
-      edgeElement.addEventListener('click', handleClick);
+    const handleSvgMouseMove = (e: MouseEvent) => {
+      const target = e.target as SVGElement;
+      const edgeGroup = target.closest('[id^="edge-"]') as SVGGElement;
+      
+      if (!edgeGroup) return;
 
-      // Store cleanup function
-      cleanupFunctions.push(() => {
-        edgeElement.removeEventListener('mouseenter', handleMouseEnter);
-        edgeElement.removeEventListener('mouseleave', handleMouseLeave);
-        edgeElement.removeEventListener('click', handleClick);
+      const edgeId = edgeGroup.id;
+      const edge = edges.find(e => e.id === edgeId);
+      
+      if (!edge || !edge.active || gameOver) return;
+      
+      const isAllowed = edge.color === currentPlayer || edge.color === 'green';
+      if (!isAllowed) return;
+
+      // Apply hover effect
+      const children = edgeGroup.querySelectorAll('*');
+      children.forEach((child) => {
+        const svgChild = child as SVGElement;
+        svgChild.setAttribute('opacity', '0.7');
+        
+        const currentStrokeWidth = svgChild.getAttribute('stroke-width');
+        if (currentStrokeWidth) {
+          if (!svgChild.hasAttribute('data-original-stroke-width')) {
+            svgChild.setAttribute('data-original-stroke-width', currentStrokeWidth);
+          }
+          svgChild.setAttribute('stroke-width', String(Number(currentStrokeWidth) * 1.3));
+        }
       });
-    });
+    };
 
-    // Cleanup all event listeners when effect re-runs
+    const handleSvgMouseOut = (e: MouseEvent) => {
+      const target = e.target as SVGElement;
+      const edgeGroup = target.closest('[id^="edge-"]') as SVGGElement;
+      
+      if (!edgeGroup) return;
+
+      const edgeId = edgeGroup.id;
+      const edge = edges.find(e => e.id === edgeId);
+      
+      if (!edge) return;
+
+      // Remove hover effect - restore original values
+      const children = edgeGroup.querySelectorAll('*');
+      children.forEach((child) => {
+        const svgChild = child as SVGElement;
+        
+        if (edge.active) {
+          svgChild.setAttribute('opacity', '1.0');
+          
+          const originalStrokeWidth = svgChild.getAttribute('data-original-stroke-width');
+          if (originalStrokeWidth) {
+            svgChild.setAttribute('stroke-width', originalStrokeWidth);
+          } else {
+            svgChild.setAttribute('stroke-width', '6');
+          }
+        }
+      });
+    };
+
+    svgContainer.addEventListener('click', handleSvgClick);
+    svgContainer.addEventListener('mouseover', handleSvgMouseMove);
+    svgContainer.addEventListener('mouseout', handleSvgMouseOut);
+    console.log('✓ Click and hover handlers attached to SVG');
+
     return () => {
-      cleanupFunctions.forEach(cleanup => cleanup());
+      console.log('=== REMOVING HANDLERS ===');
+      svgContainer.removeEventListener('click', handleSvgClick);
+      svgContainer.removeEventListener('mouseover', handleSvgMouseMove);
+      svgContainer.removeEventListener('mouseout', handleSvgMouseOut);
     };
   }, [edges, currentPlayer, gameOver]);
 
-  // Don't render on server to avoid hydration issues
+  // Update visual styles
+  useEffect(() => {
+    console.log('=== VISUAL STYLES EFFECT TRIGGERED ===');
+    console.log('containerRef.current:', !!containerRef.current);
+    console.log('edges.length:', edges.length);
+    
+    if (!containerRef.current || edges.length === 0) {
+      console.log('Skipping visual update - missing container or no edges');
+      return;
+    }
+
+    const svgContainer = containerRef.current.querySelector('svg');
+    console.log('SVG container found for styles:', !!svgContainer);
+    
+    if (!svgContainer) {
+      console.log('No SVG container for visual updates');
+      return;
+    }
+
+    console.log('Updating visual styles for', edges.length, 'edges...');
+
+    edges.forEach((edge) => {
+      const edgeGroup = svgContainer.querySelector(`#${edge.id}`) as SVGGElement;
+      if (!edgeGroup) {
+        console.log('Edge group not found in DOM:', edge.id);
+        return;
+      }
+
+      const children = edgeGroup.querySelectorAll('*');
+      console.log(`Edge ${edge.id}: ${children.length} children, active: ${edge.active}`);
+      
+      // Store original values once
+      children.forEach((child) => {
+        const svgChild = child as SVGElement;
+        if (!svgChild.hasAttribute('data-original-opacity')) {
+          svgChild.setAttribute('data-original-opacity', svgChild.getAttribute('opacity') || '1');
+        }
+      });
+
+      const isAllowed = edge.color === currentPlayer || edge.color === 'green';
+
+      if (edge.active) {
+        children.forEach((child) => {
+          const svgChild = child as SVGElement;
+          const originalOpacity = svgChild.getAttribute('data-original-opacity') || '1';
+          svgChild.setAttribute('opacity', originalOpacity);
+          svgChild.removeAttribute('filter');
+          svgChild.style.cursor = (isAllowed && !gameOver) ? 'pointer' : 'not-allowed';
+        });
+      } else {
+        children.forEach((child) => {
+          const svgChild = child as SVGElement;
+          svgChild.setAttribute('opacity', '0.2');
+          svgChild.setAttribute('filter', 'grayscale(100%)');
+          svgChild.style.cursor = 'not-allowed';
+        });
+      }
+    });
+    
+    console.log('✓ Visual styles updated');
+  }, [edges, currentPlayer, gameOver]);
+
+  // Notify parent of game state changes
+  useEffect(() => {
+    console.log('=== GAME STATE CHANGE EFFECT ===');
+    
+    if (onGameStateChange) {
+      const gameState: GameState = {
+        edges,
+        currentPlayer,
+        gameOver,
+        winner,
+      };
+      
+      console.log('Notifying parent of game state change:', gameState);
+      onGameStateChange(gameState);
+    }
+  }, [edges, currentPlayer, gameOver, winner, onGameStateChange]);
+
+  // Don't render on server
   if (!mounted) {
     return (
-      <Box
-        width="100%"
-        maxWidth={{
-          base: "95vw",
-          sm: "90vw",
-          md: "70vw",
-          lg: "60vw",
-          xl: "50vw",
-          "2xl": "45vw"
-        }}
-        height="auto"
-        margin="0 auto"
-        aspectRatio="1"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Box>Loading...</Box>
-      </Box>
+      <div style={{
+        width: '100%',
+        maxWidth: 'min(95vw, 600px)',
+        margin: '0 auto',
+        aspectRatio: '1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
+  // Don't render until we have SVG content
+  if (!svgContent) {
+    return (
+      <div style={{
+        width: '100%',
+        maxWidth: 'min(95vw, 600px)',
+        margin: '0 auto',
+        aspectRatio: '1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        Loading SVG...
+      </div>
     );
   }
 
   return (
-    <Box
+    <div
       ref={containerRef}
-      width="100%"
-      maxWidth={{
-        base: "95vw",      // Mobile: almost full width
-        sm: "90vw",        // Small tablets
-        md: "70vw",        // Medium tablets
-        lg: "60vw",        // Laptops
-        xl: "50vw",        // Desktops
-        "2xl": "45vw"      // Large desktops
+      style={{
+        width: '100%',
+        maxWidth: 'min(95vw, 600px)',
+        margin: '0 auto',
+        aspectRatio: '1'
       }}
-      height="auto"
-      margin="0 auto"
-      position="relative"
-      aspectRatio="1"      // Keep it square
-    >
-      <Box
-        as="svg"
-        ref={svgRef}
-        width="100%"
-        height="100%"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: svgContent }}
-        css={{
-          '& *': {
-            vectorEffect: 'non-scaling-stroke',
-          },
-        }}
-      />
-    </Box>
+    />
   );
 }
