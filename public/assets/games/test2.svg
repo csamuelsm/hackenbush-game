@@ -4,8 +4,8 @@
 	 viewBox="0 0 600 600" style="enable-background:new 0 0 600 600;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:none;stroke:#374151;stroke-width:4;stroke-linecap:round;}
-	.st1{fill:none;stroke:#0000FF;stroke-width:12;stroke-linecap:round;}
-	.st2{fill:none;stroke:#FF0000;stroke-width:12;stroke-linecap:round;}
+	.st1{fill:none;stroke:#0000FF;stroke-width:9;stroke-linecap:round;}
+	.st2{fill:none;stroke:#FF0000;stroke-width:9;stroke-linecap:round;}
 </style>
 <g id="ground">
 	<line class="st0" x1="50" y1="573" x2="550" y2="573"/>
