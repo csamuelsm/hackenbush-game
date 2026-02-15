@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Badge, Button, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Switch, Text, VStack } from "@chakra-ui/react";
+import { Badge, Button, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, VStack } from "@chakra-ui/react";
 import { FaBackward, FaRedoAlt, FaLightbulb } from "react-icons/fa";
 import { MdInfoOutline, MdOutlineSettings, MdQuestionMark } from 'react-icons/md';
 
@@ -9,6 +9,8 @@ import Instructions from '@/components/instructions';
 import ColorModeToggle from '@/components/colorModeToggle';
 import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
 import { formatDyadic } from '@/lib/hackenbush';
+import OldGames from '@/components/olderGames';
+import useGamePath from '@/lib/useGamePath';
 
 type Player = 'red' | 'blue';
 
@@ -16,12 +18,29 @@ export default function Hackenbush() {
   const [currentPlayer, setCurrentPlayer] = useState<Player>('red');
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [winner, setWinner] = useState<Player | null>(null);
-  const [open, setOpen] = useState<boolean>(true);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
   const [dyadicValue, setDyadicValue] = useState<string>("");
   const [player1Color, setPlayer1Color] = useState<string>("red");
   const [computerPlays, setComputerPlays] = useState<boolean>(true);
   const [lang, setLang] = useState<"English" | "Português" | "Français">("Português");
+
+  const [open, setOpen] = useState<boolean>(() => {
+    // Check if user has visited before
+    if (typeof window !== 'undefined') {
+      const hasVisited = localStorage.getItem('hackenbush-visited');
+      return !hasVisited; // Open dialog if NOT visited before
+    }
+    return false; // Default to open on server-side render
+  });
+
+  // Set the visited flag when component mounts
+  useEffect(() => {
+    if (open) {
+      localStorage.setItem('hackenbush-visited', 'true');
+    }
+  }, [open]);
+
+  const { gamePath, gNumber, loading } = useGamePath();
 
   // Handle game state updates from the SVG component
   const handleGameStateChange = (state: GameState) => {
@@ -150,12 +169,13 @@ export default function Hackenbush() {
             </Portal>
           </Drawer.Root>
           <Text fontWeight="bold" textStyle="xl">Hackenbush</Text>
-          <IconButton 
+          {/*<IconButton 
             variant="outline" size="sm"
             onClick={() => setOpen(true)}
           >
             <MdQuestionMark />
-          </IconButton>
+          </IconButton>*/}
+          <OldGames />
         </HStack>
       </Container>
 
@@ -164,42 +184,55 @@ export default function Hackenbush() {
         <Flex direction="column" alignItems="center" paddingY={3} align="stretch" justifyContent="space-between" height="100%">
           
           {/* Game Board - SVG Component */}
-          <SvgHackenbush
-            svgPath="/assets/games/test3.svg"
-            onGameStateChange={handleGameStateChange}
-            currentPlayer={currentPlayer}
-            resetTrigger={resetTrigger}
-          />
+          {loading ? 
+            (
+              <HStack gap={3}>
+                <Spinner color="blue.500" borderWidth="4px" />
+                <Text fontSize="xs" color="fg.muted">Carregando jogo...</Text>
+              </HStack>
+            ) 
+            : 
+            (
+              <SvgHackenbush
+                svgPath={gamePath}
+                onGameStateChange={handleGameStateChange}
+                currentPlayer={currentPlayer}
+                resetTrigger={resetTrigger}
+              />
+            )}
 
-          <Text textStyle="xs" color="fg.muted" marginY={2}>
-            Jogo #1
-          </Text>
-        
-          {!gameOver ? (
+          {gNumber > 0 &&
             <>
-              <Text textStyle="md">Jogador atual: 
-                <Badge 
-                  variant="surface"
-                  marginX={1}
-                  size="md"
-                  colorPalette={currentPlayer}
-                >
-                  <b>{currentPlayer.toUpperCase()}</b>
-                </Badge>
-              </Text>
-              <Text textStyle="xs" color="fg.muted" marginY={2}>
-                Valor atual do jogo: <b>{dyadicValue}</b>
-              </Text>
+            <Text textStyle="xs" color="fg.muted" marginY={2}>
+              {`Jogo #${gNumber}`}
+            </Text>
+            {!gameOver ? (
+              <>
+                <Text textStyle="md">Jogador atual: 
+                  <Badge 
+                    variant="surface"
+                    marginX={1}
+                    size="md"
+                    colorPalette={currentPlayer}
+                  >
+                    <b>{currentPlayer.toUpperCase()}</b>
+                  </Badge>
+                </Text>
+                <Text textStyle="xs" color="fg.muted" marginY={2}>
+                  Valor atual do jogo: <b>{dyadicValue}</b>
+                </Text>
+              </>
+            ) : (
+              <Badge 
+                size="md"
+                variant="surface"
+                colorPalette={winner ?? undefined}
+              >
+                <b>{winner?.toUpperCase()} WINS! 🎉</b>
+              </Badge>
+            )}
             </>
-          ) : (
-            <Badge 
-              size="md"
-              variant="surface"
-              colorPalette={winner ?? undefined}
-            >
-              <b>{winner?.toUpperCase()} WINS! 🎉</b>
-            </Badge>
-          )}
+          }
 
           {/*<HStack gap={3} marginTop={4} wrap="wrap">
             <Button variant="surface" colorPalette="gray">

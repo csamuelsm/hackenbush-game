@@ -15,6 +15,8 @@ const Instructions = (props : props) => {
         lazyMount 
         open={props.open} placement="center"
         onOpenChange={(e) => props.setOpen(e.open)}
+        size="sm"
+        motionPreset="slide-in-bottom"
     >
       <Portal>
         <Dialog.Backdrop />

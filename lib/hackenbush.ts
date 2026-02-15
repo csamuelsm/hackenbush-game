@@ -226,8 +226,12 @@ function findBestLosingMove(
     e => e.active && e.color === currentPlayer
   );
   
+  console.log(`Finding best losing move for ${currentPlayer}`);
+  console.log(`Available active edges:`, playerEdges.map(e => e.id));
+  
   // If no moves available, we lose immediately
   if (playerEdges.length === 0) {
+    console.log('No active edges available - returning null');
     return {
       value: currentValue,
       optimalMove: null,
@@ -239,11 +243,17 @@ function findBestLosingMove(
   // Choose the move that gets the game value closest to 0
   // This minimizes opponent's advantage and maximizes resistance
   
-  let bestMove = playerEdges[0].id;
-  let bestValue: DyadicNumber | null = null;
+  let bestMove = playerEdges[0].id; // Start with first available edge
+  let bestValue: DyadicNumber = currentValue;
   let bestDistance = Infinity;
   
   for (const edge of playerEdges) {
+    // Double-check edge is active
+    if (!edge.active) {
+      console.log(`Skipping inactive edge: ${edge.id}`);
+      continue;
+    }
+    
     const newPosition = {
       ...position,
       edges: position.edges.map(e => 
@@ -258,6 +268,8 @@ function findBestLosingMove(
     // Distance to zero (smaller is better - we want to make it harder for opponent)
     const distanceToZero = Math.abs(newDecimal);
     
+    console.log(`Edge ${edge.id}: new value = ${formatDyadic(newValue)} (distance: ${distanceToZero.toFixed(4)})`);
+    
     // Choose move that gets closest to zero
     if (distanceToZero < bestDistance) {
       bestDistance = distanceToZero;
@@ -266,14 +278,19 @@ function findBestLosingMove(
     }
   }
   
-  console.log(`Losing player ${currentPlayer} choosing move that minimizes disadvantage`);
-  if (bestValue) {
-    console.log(`Best move gets value to ${formatDyadic(bestValue)} (distance to 0: ${bestDistance.toFixed(4)})`);
+  console.log(`Best losing move for ${currentPlayer}: ${bestMove}`);
+  console.log(`Results in value: ${formatDyadic(bestValue)} (distance: ${bestDistance.toFixed(4)})`);
+  
+  // Final sanity check - verify the edge we're returning is actually active
+  const chosenEdge = position.edges.find(e => e.id === bestMove);
+  if (!chosenEdge?.active) {
+    console.error('WARNING: Chosen edge is not active! Falling back to first active edge');
+    bestMove = playerEdges[0].id;
   }
   
   return {
     value: currentValue,
-    optimalMove: bestMove, // Always returns a move if moves exist
+    optimalMove: bestMove, // Always returns an active edge if any exist
     winning: false
   };
 }
