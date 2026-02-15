@@ -7,6 +7,7 @@ import { MdInfoOutline, MdOutlineSettings, MdQuestionMark } from 'react-icons/md
 
 import Instructions from '@/components/instructions';
 import ColorModeToggle from '@/components/colorModeToggle';
+import { Tooltip } from "@/components/ui/tooltip";
 import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
 import { formatDyadic } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
@@ -169,12 +170,14 @@ export default function Hackenbush() {
             </Portal>
           </Drawer.Root>
           <Text fontWeight="bold" textStyle="xl">Hackenbush</Text>
-          {/*<IconButton 
+          <IconButton 
             variant="outline" size="sm"
             onClick={() => setOpen(true)}
           >
-            <MdQuestionMark />
-          </IconButton>*/}
+            <Tooltip content="Instruções">
+              <MdQuestionMark />
+            </Tooltip>
+          </IconButton>
           <OldGames />
         </HStack>
       </Container>
