@@ -139,7 +139,13 @@ export default function SvgHackenbush({
       const edgeList: Edge[] = [];
       
       edgeElements.forEach((edgeGroup) => {
-        const id = edgeGroup.id;
+        let id = edgeGroup.id;
+        
+        // Clean up Adobe Illustrator's automatic ID suffixes
+        // e.g., "edge-blue-ground-02_00000124851..." -> "edge-blue-ground-02"
+        id = id.replace(/_\d+_$/, ''); // Remove trailing _digits_
+        id = id.replace(/_[0-9a-fA-F]{30,}_?$/, ''); // Remove long hex suffixes
+        
         const parts = id.split('-');
         if (parts.length >= 4) {
           const color = parts[1] as 'red' | 'blue' | 'green';
@@ -147,7 +153,7 @@ export default function SvgHackenbush({
           const to = parts[3];
           
           edgeList.push({
-            id,
+            id: edgeGroup.id, // Keep original ID for DOM queries
             from,
             to,
             color,
@@ -163,25 +169,47 @@ export default function SvgHackenbush({
   }, [svgContent]);
 
   // BFS to find all vertices connected to ground
+  // This version handles multiple edges correctly by building adjacency list first
   const getConnectedVertices = (edgeList: Edge[]): Set<string> => {
     const connected = new Set<string>(['ground']);
     const activeEdges = edgeList.filter((e) => e.active);
 
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const edge of activeEdges) {
-        if (connected.has(edge.from) && !connected.has(edge.to)) {
-          connected.add(edge.to);
-          changed = true;
-        }
-        if (connected.has(edge.to) && !connected.has(edge.from)) {
-          connected.add(edge.from);
-          changed = true;
+    // Build adjacency list considering multiple edges
+    // A connection exists if there's at least one active edge between vertices
+    const adjacencyList = new Map<string, Set<string>>();
+    
+    for (const edge of activeEdges) {
+      // Add edge from -> to
+      if (!adjacencyList.has(edge.from)) {
+        adjacencyList.set(edge.from, new Set());
+      }
+      adjacencyList.get(edge.from)!.add(edge.to);
+      
+      // Add edge to -> from (undirected graph)
+      if (!adjacencyList.has(edge.to)) {
+        adjacencyList.set(edge.to, new Set());
+      }
+      adjacencyList.get(edge.to)!.add(edge.from);
+    }
+
+    // BFS from ground using the adjacency list
+    const queue: string[] = ['ground'];
+    
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const neighbors = adjacencyList.get(current);
+      
+      if (neighbors) {
+        for (const neighbor of neighbors) {
+          if (!connected.has(neighbor)) {
+            connected.add(neighbor);
+            queue.push(neighbor);
+          }
         }
       }
     }
 
+    console.log('Connected vertices after BFS:', connected);
     return connected;
   };
 

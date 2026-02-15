@@ -144,13 +144,11 @@ export function analyzeBlueRedHackenbush(
   
   const cmp = compareDyadic(currentValue, { numerator: 0, denominator: 1 });
   
-  // If value is 0, the current player (who must move) is losing
+  // IMPORTANT: Value = 0 means current player is in a losing position,
+  // but they still must make a move! So we call findBestLosingMove
   if (cmp === 0) {
-    return {
-      value: currentValue,
-      optimalMove: null,
-      winning: false
-    };
+    console.log('Position value is 0 - current player is losing but must still move');
+    return findBestLosingMove(position, currentPlayer, currentValue);
   }
   
   // If value favors current player, they're winning
@@ -176,8 +174,22 @@ function findWinningMove(
     e => e.active && e.color === currentPlayer
   );
   
-  let bestMove: string | null = null;
+  console.log(`Finding winning move for ${currentPlayer}`);
+  console.log(`Available active edges:`, playerEdges.map(e => e.id));
+  
+  // If no moves available (shouldn't happen in winning position)
+  if (playerEdges.length === 0) {
+    console.log('No active edges available - returning null');
+    return {
+      value: currentValue,
+      optimalMove: null,
+      winning: false
+    };
+  }
+  
+  let bestMove: string = playerEdges[0].id; // Initialize with first edge
   let bestResultValue = currentValue;
+  let foundWinningMove = false;
   
   for (const edge of playerEdges) {
     // Simulate removing this edge
@@ -196,23 +208,52 @@ function findWinningMove(
     // After our move, opponent will move, so we want a position that's still favorable
     // For a winning move, the position should still favor us after opponent's best response
     
-    // Simple heuristic: choose the move that results in the smallest absolute value
-    // (closest to zero while maintaining advantage)
-    const currentAbs = Math.abs(currentValue.numerator / currentValue.denominator);
     const newAbs = Math.abs(newValue.numerator / newValue.denominator);
     
     const stillWinning = (currentPlayer === 'blue' && compareDyadic(newValue, { numerator: 0, denominator: 1 }) >= 0) ||
                          (currentPlayer === 'red' && compareDyadic(newValue, { numerator: 0, denominator: 1 }) <= 0);
     
-    if (stillWinning && (bestMove === null || newAbs < Math.abs(bestResultValue.numerator / bestResultValue.denominator))) {
-      bestMove = edge.id;
-      bestResultValue = newValue;
+    console.log(`Edge ${edge.id}: new value = ${formatDyadic(newValue)}, still winning: ${stillWinning}`);
+    
+    if (stillWinning) {
+      foundWinningMove = true;
+      if (bestMove === playerEdges[0].id || newAbs < Math.abs(bestResultValue.numerator / bestResultValue.denominator)) {
+        bestMove = edge.id;
+        bestResultValue = newValue;
+      }
     }
   }
   
+  // If no move maintains winning position, just pick the best available move
+  if (!foundWinningMove) {
+    console.log('No move maintains winning advantage, choosing best available move');
+    let bestDistance = Infinity;
+    
+    for (const edge of playerEdges) {
+      const newPosition = {
+        ...position,
+        edges: position.edges.map(e => 
+          e.id === edge.id ? { ...e, active: false } : e
+        )
+      };
+      
+      newPosition.edges = removeDisconnectedEdges(newPosition);
+      const newValue = calculateGameValue(newPosition);
+      const distanceToZero = Math.abs(newValue.numerator / newValue.denominator);
+      
+      if (distanceToZero < bestDistance) {
+        bestDistance = distanceToZero;
+        bestMove = edge.id;
+        bestResultValue = newValue;
+      }
+    }
+  }
+  
+  console.log(`Best winning move for ${currentPlayer}: ${bestMove}`);
+  
   return {
     value: currentValue,
-    optimalMove: bestMove,
+    optimalMove: bestMove, // Always returns an edge if edges exist
     winning: true
   };
 }
@@ -323,9 +364,52 @@ export function dyadicToDecimal(d: DyadicNumber): number {
   return d.numerator / d.denominator;
 }
 
-// Helper to format dyadic as a string
+// Helper to format dyadic as a string with mixed fractions
 export function formatDyadic(d: DyadicNumber): string {
   if (d.numerator === 0) return "0";
   if (d.denominator === 1) return d.numerator.toString();
-  return `${d.numerator}/${d.denominator}`;
+  
+  const absNumerator = Math.abs(d.numerator);
+  const sign = d.numerator < 0 ? "-" : "";
+  
+  // Check if it's an improper fraction (convert to mixed number)
+  if (absNumerator >= d.denominator) {
+    const wholePart = Math.floor(absNumerator / d.denominator);
+    const remainder = absNumerator % d.denominator;
+    
+    if (remainder === 0) {
+      return `${sign}${wholePart}`;
+    }
+    
+    return `${sign}${wholePart} ${remainder}/${d.denominator}`;
+  }
+  
+  // Proper fraction
+  return `${sign}${absNumerator}/${d.denominator}`;
+}
+
+// Helper to format dyadic with Unicode superscript/subscript for beautiful display
+export function formatDyadicFancy(d: DyadicNumber): string {
+  if (d.numerator === 0) return "0";
+  if (d.denominator === 1) return d.numerator.toString();
+  
+  const absNumerator = Math.abs(d.numerator);
+  const sign = d.numerator < 0 ? "−" : ""; // Using proper minus sign
+  
+  // For HTML display, you could return:
+  // return `${sign}<sup>${absNumerator}</sup>⁄<sub>${d.denominator}</sub>`;
+  
+  // For plain text with Unicode fraction slash
+  if (absNumerator >= d.denominator) {
+    const wholePart = Math.floor(absNumerator / d.denominator);
+    const remainder = absNumerator % d.denominator;
+    
+    if (remainder === 0) {
+      return `${sign}${wholePart}`;
+    }
+    
+    return `${sign}${wholePart} ${remainder}⁄${d.denominator}`;
+  }
+  
+  return `${sign}${absNumerator}⁄${d.denominator}`;
 }

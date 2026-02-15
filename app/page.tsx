@@ -9,7 +9,7 @@ import Instructions from '@/components/instructions';
 import ColorModeToggle from '@/components/colorModeToggle';
 import { Tooltip } from "@/components/ui/tooltip";
 import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
-import { formatDyadic } from '@/lib/hackenbush';
+import { formatDyadicFancy } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
 import useGamePath from '@/lib/useGamePath';
 
@@ -71,7 +71,7 @@ export default function Hackenbush() {
     setWinner(state.winner);
 
     if (state.gameValue != null) {
-      setDyadicValue(formatDyadic(state.gameValue));
+      setDyadicValue(formatDyadicFancy(state.gameValue));
     } else {
       setDyadicValue("");
     }
