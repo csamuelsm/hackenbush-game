@@ -116,7 +116,7 @@ export const metadata: Metadata = {
   
   // Verification (adicione quando tiver as contas)
   verification: {
-    google: "5Vfg2bdITXaloOzwyNuVxRhxijZKLZfXQxjgLslO", // Google Search Console
+    google: "ati0qD-Z8TpXal8n3mACm3tuDa8rqYX_In-6-neU0To", // Google Search Console
   },
   
   // Category
