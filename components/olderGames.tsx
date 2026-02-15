@@ -10,7 +10,13 @@ interface GameFile {
   path: string;
 }
 
-const OldGames = () => {
+const OldGames = (props : {
+    tooltipContent : string,
+    title: string,
+    loading: string,
+    game: string,
+    notFound: string,
+}) => {
     const [games, setGames] = useState<GameFile[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -78,7 +84,7 @@ const OldGames = () => {
         >
             <Dialog.Trigger asChild>
                     <IconButton variant="outline" size="sm">
-                        <Tooltip content="Jogos antigos">
+                        <Tooltip content={props.tooltipContent}>
                             <MdOutlineCalendarMonth />
                         </Tooltip>
                     </IconButton>
@@ -88,13 +94,13 @@ const OldGames = () => {
                 <Dialog.Positioner>
                 <Dialog.Content>
                     <Dialog.Header>
-                    <Dialog.Title>Jogos antigos</Dialog.Title>
+                    <Dialog.Title>{props.title}</Dialog.Title>
                     </Dialog.Header>
                     <Dialog.Body>
                         {loading ? (
-                <Text>Carregando jogos...</Text>
+                <Text>{props.loading}</Text>
               ) : games.length === 0 ? (
-                <Text>Nenhum jogo encontrado.</Text>
+                <Text>{props.notFound}</Text>
               ) : (
                 <Grid 
                   templateColumns={{
@@ -135,7 +141,7 @@ const OldGames = () => {
                                     }}
                                 />
                                 <Badge colorPalette="blue" size="sm">
-                                    Jogo #{game.number}
+                                    {props.game} #{game.number}
                                 </Badge>
                                 </Box>
                             ))}

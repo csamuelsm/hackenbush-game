@@ -1,0 +1,135 @@
+type T = {
+    [key: string] : {
+        title: string,
+        current_player: string,
+        red: string,
+        blue: string,
+        game: string,
+        current_value: string,
+        under_dev: string,
+        wins: string,
+        dev_by: string,
+        created_by: string,
+        not_found: string,
+        // Instructions
+        instructions_title: string,
+        instructions_1: string,
+        instructions_2: string,
+        instructions_3: string,
+        instructions_4: string,
+        instructions_5: string,
+        instructions_6: string,
+        // Settings
+        settings_title: string,
+        player1_color: string,
+        computer_play: string,
+        language: string,
+        description: string,
+        // Tooltips
+        how_to_play: string,
+        old_games: string,
+        // Loading,
+        loading: string
+    }
+}
+
+export const translations = {
+    "English": {
+        title: "Hackenbush",
+        current_player: "Current Player: ",
+        red: "RED",
+        blue: "BLUE",
+        game: "Game ",
+        current_value: "Current Game Value: ",
+        under_dev: "GAME STILL UNDER DEVELOPMENT",
+        wins: " WON!",
+        dev_by: "Game developed for web by ",
+        created_by: " was created by ",
+        not_found: "Not found",
+        // Instructions
+        instructions_title: "How to play Hackenbush?",
+        instructions_1: "Each player has a color: ",
+        instructions_2: "Click an edge of your color to remove it.",
+        instructions_3: "Alternately, players choose an edge of their color to remove.",
+        instructions_4: "All edges that are disconnected from the ground disappear.",
+        instructions_5: "The game ends when some player cannot choose any more edges.",
+        instructions_6: "The last player to make a move wins the game.",
+        // Settings
+        settings_title: "Settings",
+        player1_color: "Player 1 color",
+        computer_play: "Play against computer",
+        language: "Language",
+        description: "Hackenbush is a game created by mathematician John Conway and one of the foundations of Combinatorial Game Theory, which is widely studied in mathematics and computer science.",
+        // Tooltips
+        how_to_play: "How to play",
+        old_games: "Old games",
+        // Loading,
+        loading: "Loading..."
+    },
+
+    "Português": {
+        title: "Hackenbush",
+        current_player: "Jogador atual: ",
+        red: "VERMELHO",
+        blue: "AZUL",
+        game: "Jogo ",
+        current_value: "Valor atual do jogo: ",
+        under_dev: "JOGO AINDA EM DESENVOLVIMENTO",
+        wins: " GANHOU!",
+        dev_by: "Jogo desenvolvido para web por ",
+        created_by: " foi criado por ",
+        not_found: "Não encontrado.",
+        // Instructions
+        instructions_title: "Como jogar Hackenbush?",
+        instructions_1: "Cada jogador tem uma cor: ",
+        instructions_2: "Clique em uma aresta da sua cor para removê-la.",
+        instructions_3: "Alternadamente, os jogadores escolhem uma aresta da sua cor para remover.",
+        instructions_4: "Todas as arestas que ficarem desconectadas da base desaparecem.",
+        instructions_5: "O jogo acaba quando algum jogador não puder mais escolher uma aresta.",
+        instructions_6: "O último jogador a fazer um movimento ganha o jogo.",
+        // Settings
+        settings_title: "Configurações",
+        player1_color: "Cor do Jogador 1",
+        computer_play: "Jogar contra computador",
+        language: "Língua",
+        description: "Hackenbush é um jogo criado pelo matemático John Conway e uma das bases da Teoria dos Jogos Combinatórios, bastante estudada na matemática e na ciência da computação.",
+        // Tooltips
+        how_to_play: "Como jogar",
+        old_games: "Jogos antigos",
+        // Loading,
+        loading: "Carregando..."
+    },
+
+    "Français": {
+        title: "Hackenbush",
+        current_player: "Joueur actuel: ",
+        red: "ROUGE",
+        blue: "BLEU",
+        game: "Jeu ",
+        current_value: "Valeur actuelle du jeu: ",
+        under_dev: "JEU ENCORE EN COURS DE DÉVELOPPEMENT",
+        wins: " A GAGNÉ!",
+        dev_by: "Jeu développé pour le web par ",
+        created_by: " a été créé par ",
+        not_found: "Introuvable",
+        // Instructions
+        instructions_title: "Comment jouer au Hackenbush?",
+        instructions_1: "Chaque joueur a une couleur: ",
+        instructions_2: "Cliquez sur une ligne de votre couleur pour la supprimer.",
+        instructions_3: "Les joueurs choisissent à tour de rôle une ligne de leur couleur à retirer.",
+        instructions_4: "Toutes les lignes déconnectées du sol disparaissent.",
+        instructions_5: "Le jeu se termine lorsqu'un joueur ne peut plus choisir aucune ligne.",
+        instructions_6: "Le dernier joueur à jouer remporte la partie.",
+        // Settings
+        settings_title: "Paramètres",
+        player1_color: "Couleur du joueur 1",
+        computer_play: "Jouer contre la machine",
+        language: "Langue",
+        description: "Hackenbush est un jeu créé par le mathématicien John Conway et l'un des fondements de la théorie des jeux combinatoires, largement étudiée en mathématiques et en informatique.",
+        // Tooltips
+        how_to_play: "Comment jouer",
+        old_games: "Jeux anciens",
+        // Loading,
+        loading: "Chargement..."
+    },
+}

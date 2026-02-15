@@ -13,6 +13,8 @@ import { formatDyadic } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
 import useGamePath from '@/lib/useGamePath';
 
+import { translations } from '@/lib/translations';
+
 type Player = 'red' | 'blue';
 
 export default function Hackenbush() {
@@ -23,7 +25,9 @@ export default function Hackenbush() {
   const [dyadicValue, setDyadicValue] = useState<string>("");
   const [player1Color, setPlayer1Color] = useState<string>("red");
   const [computerPlays, setComputerPlays] = useState<boolean>(true);
-  const [lang, setLang] = useState<"English" | "Português" | "Français">("Português");
+  const [lang, setLang] = useState<"English" | "Português" | "Français">("English");
+
+  const t = translations[lang];
 
   const [open, setOpen] = useState<boolean>(() => {
     // Check if user has visited before
@@ -40,6 +44,19 @@ export default function Hackenbush() {
       localStorage.setItem('hackenbush-visited', 'true');
     }
   }, [open]);
+
+  useEffect(() => {
+    // Detecta a linguagem apenas no cliente
+    const browserLang = navigator.language.split('-')[0];
+    
+    const langMap: { [key: string]: "English" | "Português" | "Français" } = {
+      'pt': "Português",
+      'en': "English",
+      'fr': "Français"
+    };
+    
+    setLang(langMap[browserLang] || "English");
+  }, []);
 
   const { gamePath, gNumber, loading } = useGamePath();
 
@@ -103,13 +120,13 @@ export default function Hackenbush() {
               <Drawer.Positioner>
                 <Drawer.Content>
                   <Drawer.Header>
-                    <Drawer.Title>Configurações</Drawer.Title>
+                    <Drawer.Title>{t.settings_title}</Drawer.Title>
                   </Drawer.Header>
 
                   <Drawer.Body>
                     <VStack gap={6} alignItems="start">
                       <Fieldset.Root>
-                        <Fieldset.Legend >Cor do Jogador 1:</Fieldset.Legend>
+                        <Fieldset.Legend >{t.player1_color}</Fieldset.Legend>
                         <RadioGroup.Root marginY={1} 
                           value={player1Color}
                           onValueChange={(e) => setPlayer1Color(e.value != null ? e.value : "red")}
@@ -119,13 +136,13 @@ export default function Hackenbush() {
                             <RadioGroup.Item value="red">
                               <RadioGroup.ItemHiddenInput />
                               <RadioGroup.ItemIndicator />
-                              <RadioGroup.ItemText>Vermelho</RadioGroup.ItemText>
+                              <RadioGroup.ItemText>{t.red}</RadioGroup.ItemText>
                             </RadioGroup.Item>
 
                             <RadioGroup.Item value="blue">
                               <RadioGroup.ItemHiddenInput />
                               <RadioGroup.ItemIndicator />
-                              <RadioGroup.ItemText>Azul</RadioGroup.ItemText>
+                              <RadioGroup.ItemText>{t.blue}</RadioGroup.ItemText>
                             </RadioGroup.Item>
                           </HStack>
                         </RadioGroup.Root>
@@ -142,12 +159,12 @@ export default function Hackenbush() {
                           <Switch.Thumb />
                         </Switch.Control>
                         <Switch.Label>
-                          Jogar contra computador
+                          {t.computer_play}
                         </Switch.Label>
                       </Switch.Root>
 
                       <Field.Root>
-                        <Field.Label>Língua</Field.Label>
+                        <Field.Label>{t.language}</Field.Label>
                         <SegmentGroup.Root value={lang}
                           onValueChange={
                             // @ts-ignore
@@ -162,7 +179,7 @@ export default function Hackenbush() {
 
                   <Drawer.Footer>
                     <Text fontSize="xs" color="fg.subtle" lineHeight="short">
-                      Hackenbush é um jogo criado pelo matemático John Conway e uma das bases da Teoria dos Jogos Combinatórios, bastante estudada na matemática e na ciência da computação.
+                      {t.description}
                     </Text>
                   </Drawer.Footer>
                 </Drawer.Content>
@@ -174,11 +191,17 @@ export default function Hackenbush() {
             variant="outline" size="sm"
             onClick={() => setOpen(true)}
           >
-            <Tooltip content="Instruções">
+            <Tooltip content={t.how_to_play}>
               <MdQuestionMark />
             </Tooltip>
           </IconButton>
-          <OldGames />
+          <OldGames 
+            tooltipContent={t.old_games} 
+            title={t.old_games}
+            loading={t.loading}
+            notFound={t.not_found}
+            game={t.game}
+          />
         </HStack>
       </Container>
 
@@ -191,7 +214,7 @@ export default function Hackenbush() {
             (
               <HStack gap={3}>
                 <Spinner color="blue.500" borderWidth="4px" />
-                <Text fontSize="xs" color="fg.muted">Carregando jogo...</Text>
+                <Text fontSize="xs" color="fg.muted">{t.loading}</Text>
               </HStack>
             ) 
             : 
@@ -207,22 +230,26 @@ export default function Hackenbush() {
           {gNumber > 0 &&
             <>
             <Text textStyle="xs" color="fg.muted" marginY={2}>
-              {`Jogo #${gNumber}`}
+              {`${t.game} #${gNumber}`}
             </Text>
             {!gameOver ? (
               <>
-                <Text textStyle="md">Jogador atual: 
+                <Text textStyle="md">{t.current_player} 
                   <Badge 
                     variant="surface"
                     marginX={1}
                     size="md"
                     colorPalette={currentPlayer}
                   >
-                    <b>{currentPlayer.toUpperCase()}</b>
+                    <b>{
+                      currentPlayer == 'red' ?
+                      (<>{t.red.toUpperCase()}</>) : 
+                      (<>{t.blue.toUpperCase()}</>)
+                    }</b>
                   </Badge>
                 </Text>
                 <Text textStyle="xs" color="fg.muted" marginY={2}>
-                  Valor atual do jogo: <b>{dyadicValue}</b>
+                  {t.current_value} <b>{dyadicValue}</b>
                 </Text>
               </>
             ) : (
@@ -231,7 +258,8 @@ export default function Hackenbush() {
                 variant="surface"
                 colorPalette={winner ?? undefined}
               >
-                <b>{winner?.toUpperCase()} WINS! 🎉</b>
+                <b>{winner? t[winner].toUpperCase() : ''} 
+                  {t.wins} 🎉</b>
               </Badge>
             )}
             </>
@@ -258,10 +286,10 @@ export default function Hackenbush() {
 
       <Container centerContent={true} paddingY={3} marginBottom={1}>
         <Badge colorPalette="yellow" variant="surface">
-          JOGO AINDA EM DESENVOLVIMENTO
+          {t.under_dev}
         </Badge>
         <Text fontSize="xs" color="fg.muted">
-          Jogo desenvolvido para web por {" "} 
+          {t.dev_by} {" "} 
           <Link
             href="https://csamuelssm.vercel.app/"
             variant="underline"
@@ -277,7 +305,7 @@ export default function Hackenbush() {
             colorPalette='teal'
           >
             Hackenbush
-          </Link> foi criado por {" "}
+          </Link> {t.created_by} {" "}
           <Link
             href="https://pt.wikipedia.org/wiki/John_Conway"
             variant="underline"
@@ -289,7 +317,17 @@ export default function Hackenbush() {
       </Container>
 
       {/* Instructions */}
-      <Instructions open={open} setOpen={setOpen} />
+      <Instructions open={open} setOpen={setOpen} 
+        title={t.instructions_title}
+        instructions_1={t.instructions_1}
+        instructions_2={t.instructions_2}
+        instructions_3={t.instructions_3}
+        instructions_4={t.instructions_4}
+        instructions_5={t.instructions_5}
+        instructions_6={t.instructions_6}
+        red={t.red}
+        blue={t.blue}
+      />
     </Flex>
   );
 }

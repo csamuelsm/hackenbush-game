@@ -3,7 +3,16 @@ import { Dispatch, SetStateAction, useState } from "react";
 
 type props = {
     open: boolean,
-    setOpen: Dispatch<SetStateAction<boolean>>
+    setOpen: Dispatch<SetStateAction<boolean>>,
+    title: string,
+    instructions_1: string,
+    instructions_2: string,
+    instructions_3: string,
+    instructions_4: string,
+    instructions_5: string,
+    instructions_6: string,
+    red: string,
+    blue: string,
 }
 
 const Instructions = (props : props) => {
@@ -23,29 +32,29 @@ const Instructions = (props : props) => {
         <Dialog.Positioner>
           <Dialog.Content>
             <Dialog.Header>
-              <Dialog.Title>Como jogar Hackenbush?</Dialog.Title>
+              <Dialog.Title>{props.title}</Dialog.Title>
             </Dialog.Header>
             <Dialog.Body>
               <List.Root gap={2} variant="marker" align="center" paddingX={3}>
                 <List.Item>
-                    Cada jogador tem uma cor: 
-                    <Badge colorPalette="red" marginX={1}><b>VERMELHO</b></Badge>ou
-                    <Badge colorPalette="blue" marginX={1}><b>AZUL</b></Badge>.
+                    {props.instructions_1}
+                    <Badge colorPalette="red" marginX={1}><b>{props.red}</b></Badge>, 
+                    <Badge colorPalette="blue" marginX={1}><b>{props.blue}</b></Badge>.
                 </List.Item>
                 <List.Item>
-                    <b>Clique em uma aresta da sua cor</b> para removê-la.
+                    {props.instructions_2}
                 </List.Item>
                 <List.Item>
-                    Alternadamente, os jogadores escolhem uma aresta da sua cor para <b>remover</b>.
+                    {props.instructions_3}
                 </List.Item>
                 <List.Item>
-                    Todas as arestas que ficarem <b>desconectadas da base</b> desaparecem.
+                    {props.instructions_4}
                 </List.Item>
                 <List.Item>
-                    O jogo acaba quando <b>não existir mais arestas</b> a serem escolhidas.
+                    {props.instructions_5}
                 </List.Item>
                 <List.Item>
-                    <b>O último jogador</b> a fazer um movimento <b>ganha o jogo.</b>
+                    {props.instructions_6}
                 </List.Item>
               </List.Root>
             </Dialog.Body>
