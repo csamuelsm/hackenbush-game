@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 // Set your reference date here
-export const REFERENCE_DATE = new Date('2026-02-14'); // Adjust this to your desired date
+export const REFERENCE_DATE = new Date('2026-02-12'); // Adjust this to your desired date
 
 const useGamePath = () => {
   const [gamePath, setGamePath] = useState<string>('');

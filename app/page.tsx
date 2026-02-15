@@ -13,6 +13,8 @@ import { formatDyadicFancy } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
 import useGamePath from '@/lib/useGamePath';
 
+import confetti from 'canvas-confetti';
+
 import { translations } from '@/lib/translations';
 
 type Player = 'red' | 'blue';
@@ -44,6 +46,38 @@ export default function Hackenbush() {
       localStorage.setItem('hackenbush-visited', 'true');
     }
   }, [open]);
+
+  // Trigger confetti when player 1 wins
+  useEffect(() => {
+    if (gameOver && winner === player1Color) {
+      // Fire confetti from both sides
+      const duration = 2000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 7,
+          angle: 60,
+          spread: 40,
+          origin: { x: 0 },
+          colors: ['#ff0000', '#0000ff', '#00ff00', '#ffff00', '#ff00ff']
+        });
+        confetti({
+          particleCount: 7,
+          angle: 120,
+          spread: 40,
+          origin: { x: 1 },
+          colors: ['#ff0000', '#0000ff', '#00ff00', '#ffff00', '#ff00ff']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    }
+  }, [gameOver, winner, player1Color]);
 
   useEffect(() => {
     // Detecta a linguagem apenas no cliente

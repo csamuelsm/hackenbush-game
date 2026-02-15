@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 28.4.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Camada_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 600 600" style="enable-background:new 0 0 600 600;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#374151;stroke-width:4;stroke-linecap:round;}
+	.st1{fill:none;stroke:#0000FF;stroke-width:9;stroke-linecap:round;}
+	.st2{fill:none;stroke:#FF0000;stroke-width:9;stroke-linecap:round;}
+</style>
+<g id="ground">
+	<line class="st0" x1="50" y1="408" x2="550" y2="408"/>
+</g>
+<g id="edge-blue-ground-01">
+	<line class="st1" x1="224.5" y1="304" x2="224.5" y2="408"/>
+</g>
+<g id="edge-red-ground-02">
+	<line class="st2" x1="375.5" y1="304" x2="375.5" y2="408"/>
+</g>
+<g id="edge-red-01-03">
+	<line class="st2" x1="224.5" y1="200" x2="224.5" y2="304"/>
+</g>
+<g id="vertex-01">
+	<circle cx="224.5" cy="304" r="8"/>
+</g>
+<g id="vertex-02">
+	<circle cx="375.5" cy="304" r="8"/>
+</g>
+<g id="vertex-03">
+	<circle cx="224.5" cy="200" r="8"/>
+</g>
+</svg>
