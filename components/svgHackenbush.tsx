@@ -559,7 +559,7 @@ export default function SvgHackenbush({
     <div
       ref={containerRef}
       style={{
-        width: 'min(55vw, 55vh)',
+        width: 'min(85vw, 600px)',
         margin: '0 auto',
         aspectRatio: '1'
       }}
