@@ -16,6 +16,7 @@ import useGamePath from '@/lib/useGamePath';
 import confetti from 'canvas-confetti';
 
 import { translations } from '@/lib/translations';
+import ColorModeToggle from '@/components/colorModeToggle';
 
 type Player = 'red' | 'blue';
 
@@ -142,6 +143,7 @@ export default function Hackenbush() {
     <Flex direction="column" h="100vh" align="stretch" justifyContent="space-between">
       <Container centerContent={true} paddingY={3}>
         <HStack alignItems="center" gap={5}>
+          <ColorModeToggle />
           {/* Config Drawer */}
           <Drawer.Root placement="start">
             <Drawer.Trigger asChild>
