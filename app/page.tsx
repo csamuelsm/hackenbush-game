@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Badge, Button, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, VStack } from "@chakra-ui/react";
-import { FaBackward, FaRedoAlt, FaLightbulb } from "react-icons/fa";
-import { MdInfoOutline, MdOutlineSettings, MdQuestionMark } from 'react-icons/md';
+import { Badge, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, VStack } from "@chakra-ui/react";
+import { MdOutlineSettings, MdQuestionMark } from 'react-icons/md';
+
+import SocialClipboard from '@/components/clipboard';
 
 import Instructions from '@/components/instructions';
-import ColorModeToggle from '@/components/colorModeToggle';
 import { Tooltip } from "@/components/ui/tooltip";
 import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
 import { formatDyadicFancy } from '@/lib/hackenbush';
@@ -25,7 +25,7 @@ export default function Hackenbush() {
   const [winner, setWinner] = useState<Player | null>(null);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
   const [dyadicValue, setDyadicValue] = useState<string>("");
-  const [player1Color, setPlayer1Color] = useState<string>("red");
+  const [player1Color, setPlayer1Color] = useState<Player>("red");
   const [computerPlays, setComputerPlays] = useState<boolean>(true);
   const [lang, setLang] = useState<"English" | "Português" | "Français">("English");
 
@@ -163,6 +163,7 @@ export default function Hackenbush() {
                         <Fieldset.Legend >{t.player1_color}</Fieldset.Legend>
                         <RadioGroup.Root marginY={1} 
                           value={player1Color}
+                          // @ts-ignore
                           onValueChange={(e) => setPlayer1Color(e.value != null ? e.value : "red")}
                           colorPalette={player1Color}
                         >
@@ -287,6 +288,7 @@ export default function Hackenbush() {
                 </Text>
               </>
             ) : (
+              <>
               <Badge 
                 size="md"
                 variant="surface"
@@ -295,6 +297,12 @@ export default function Hackenbush() {
                 <b>{winner? t[winner].toUpperCase() : ''} 
                   {t.wins} 🎉</b>
               </Badge>
+
+              <SocialClipboard 
+                lang={lang} won={gameOver && winner === player1Color}
+                color={player1Color}
+              />
+              </>
             )}
             </>
           }
