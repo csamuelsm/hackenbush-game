@@ -9,7 +9,7 @@ import SocialClipboard from '@/components/clipboard';
 import Instructions from '@/components/instructions';
 import { Tooltip } from "@/components/ui/tooltip";
 import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
-import { formatDyadicFancy } from '@/lib/hackenbush';
+//import { formatDyadicFancy } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
 import useGamePath from '@/lib/useGamePath';
 
@@ -25,7 +25,7 @@ export default function Hackenbush() {
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [winner, setWinner] = useState<Player | null>(null);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
-  const [dyadicValue, setDyadicValue] = useState<string>("");
+  //const [dyadicValue, setDyadicValue] = useState<string>("");
   const [player1Color, setPlayer1Color] = useState<Player>("red");
   const [computerPlays, setComputerPlays] = useState<boolean>(true);
   const [lang, setLang] = useState<"English" | "Português" | "Français">("English");
@@ -105,11 +105,11 @@ export default function Hackenbush() {
     setGameOver(state.gameOver);
     setWinner(state.winner);
 
-    if (state.gameValue != null) {
+    /*if (state.gameValue != null) {
       setDyadicValue(formatDyadicFancy(state.gameValue));
     } else {
       setDyadicValue("");
-    }
+    }*/
 
     if (state.currentPlayer != player1Color && computerPlays && !state.gameOver) {
       // next player to make a move is the computer
@@ -284,9 +284,6 @@ export default function Hackenbush() {
                       (<>{t.blue.toUpperCase()}</>)
                     }</b>
                   </Badge>
-                </Text>
-                <Text textStyle="xs" color="fg.muted" marginY={2}>
-                  {t.current_value} <b>{dyadicValue}</b>
                 </Text>
               </>
             ) : (

@@ -1,7 +1,7 @@
-// Dyadic rational number representation
+// Dyadic rational number representation (kept for compatibility)
 export interface DyadicNumber {
-  numerator: number;  // Can be negative
-  denominator: number; // Always a power of 2
+  numerator: number;
+  denominator: number;
 }
 
 interface HackenbushPosition {
@@ -17,354 +17,240 @@ interface HackenbushPosition {
 
 interface GameAnalysis {
   value: DyadicNumber;
-  optimalMove: string | null; // edge id or null if losing
+  optimalMove: string | null;
   winning: boolean;
 }
 
-// Simplify a dyadic number
-function simplifyDyadic(d: DyadicNumber): DyadicNumber {
-  if (d.numerator === 0) return { numerator: 0, denominator: 1 };
+// Compute connected vertices using BFS
+function computeConnectedVertices(position: HackenbushPosition): Set<string> {
+  const connected = new Set<string>(['ground']);
+  const activeEdges = position.edges.filter(e => e.active);
   
-  // Reduce by common factors of 2
-  let num = d.numerator;
-  let den = d.denominator;
+  const adjacencyList = new Map<string, Set<string>>();
   
-  while (num % 2 === 0 && den > 1) {
-    num /= 2;
-    den /= 2;
+  for (const edge of activeEdges) {
+    if (!adjacencyList.has(edge.from)) {
+      adjacencyList.set(edge.from, new Set());
+    }
+    adjacencyList.get(edge.from)!.add(edge.to);
+    
+    if (!adjacencyList.has(edge.to)) {
+      adjacencyList.set(edge.to, new Set());
+    }
+    adjacencyList.get(edge.to)!.add(edge.from);
   }
   
-  return { numerator: num, denominator: den };
-}
-
-// Compare two dyadic numbers
-function compareDyadic(a: DyadicNumber, b: DyadicNumber): number {
-  // Convert to common denominator
-  const maxDen = Math.max(a.denominator, b.denominator);
-  const aNum = a.numerator * (maxDen / a.denominator);
-  const bNum = b.numerator * (maxDen / b.denominator);
-  
-  if (aNum > bNum) return 1;
-  if (aNum < bNum) return -1;
-  return 0;
-}
-
-// Add two dyadic numbers
-function addDyadic(a: DyadicNumber, b: DyadicNumber): DyadicNumber {
-  const maxDen = Math.max(a.denominator, b.denominator);
-  const aNum = a.numerator * (maxDen / a.denominator);
-  const bNum = b.numerator * (maxDen / b.denominator);
-  
-  return simplifyDyadic({
-    numerator: aNum + bNum,
-    denominator: maxDen
-  });
-}
-
-// Compute distance from each vertex to ground using BFS
-function computeDistances(position: HackenbushPosition): Map<string, number> {
-  const distances = new Map<string, number>();
-  distances.set('ground', 0);
-  
   const queue: string[] = ['ground'];
-  const activeEdges = position.edges.filter(e => e.active);
   
   while (queue.length > 0) {
     const current = queue.shift()!;
-    const currentDist = distances.get(current)!;
+    const neighbors = adjacencyList.get(current);
     
-    // Find all neighbors
-    for (const edge of activeEdges) {
-      let neighbor: string | null = null;
-      
-      if (edge.from === current && !distances.has(edge.to)) {
-        neighbor = edge.to;
-      } else if (edge.to === current && !distances.has(edge.from)) {
-        neighbor = edge.from;
-      }
-      
-      if (neighbor) {
-        distances.set(neighbor, currentDist + 1);
-        queue.push(neighbor);
+    if (neighbors) {
+      for (const neighbor of neighbors) {
+        if (!connected.has(neighbor)) {
+          connected.add(neighbor);
+          queue.push(neighbor);
+        }
       }
     }
   }
   
-  return distances;
+  return connected;
 }
 
-// Calculate the value of a single edge based on its distance from ground
-function edgeValue(distance: number, color: 'red' | 'blue'): DyadicNumber {
-  // Blue edge at distance d has value +1/2^d
-  // Red edge at distance d has value -1/2^d
-  const sign = color === 'blue' ? 1 : -1;
-  const denominator = Math.pow(2, distance);
+// Remove disconnected edges after a move
+function removeDisconnectedEdges(position: HackenbushPosition): HackenbushPosition {
+  const connected = computeConnectedVertices(position);
   
-  return { numerator: sign, denominator };
+  return {
+    ...position,
+    edges: position.edges.map(edge => {
+      if (!edge.active) return edge;
+      
+      const fromConnected = connected.has(edge.from);
+      const toConnected = connected.has(edge.to);
+      
+      return {
+        ...edge,
+        active: fromConnected && toConnected
+      };
+    })
+  };
 }
 
-// Calculate the game value using the Colon Principle
-function calculateGameValue(position: HackenbushPosition): DyadicNumber {
-  const distances = computeDistances(position);
-  let totalValue: DyadicNumber = { numerator: 0, denominator: 1 };
+// Simple heuristic evaluation: count edges
+// Positive = Blue advantage, Negative = Red advantage
+function evaluatePosition(position: HackenbushPosition): number {
+  const activeEdges = position.edges.filter(e => e.active);
   
-  for (const edge of position.edges) {
-    if (!edge.active) continue;
-    
-    // Find the distance of the edge (use the endpoint farther from ground)
-    const distFrom = distances.get(edge.from) ?? Infinity;
-    const distTo = distances.get(edge.to) ?? Infinity;
-    
-    // Edge is at distance of its lower endpoint + 1
-    const edgeDist = Math.min(distFrom, distTo) + 1;
-    
-    if (edgeDist === Infinity) continue; // Disconnected edge
-    
-    const value = edgeValue(edgeDist, edge.color);
-    totalValue = addDyadic(totalValue, value);
+  let blueCount = 0;
+  let redCount = 0;
+  
+  for (const edge of activeEdges) {
+    if (edge.color === 'blue') blueCount++;
+    else if (edge.color === 'red') redCount++;
   }
   
-  return simplifyDyadic(totalValue);
+  return blueCount - redCount;
 }
 
-// Find the optimal move for the current player
-export function analyzeBlueRedHackenbush(
+// Check if game is over (no moves for current player)
+function isGameOver(position: HackenbushPosition, player: 'red' | 'blue'): boolean {
+  const activeEdges = position.edges.filter(e => e.active && e.color === player);
+  return activeEdges.length === 0;
+}
+
+// Minimax with alpha-beta pruning
+function minimax(
   position: HackenbushPosition,
+  depth: number,
+  alpha: number,
+  beta: number,
+  maximizingPlayer: boolean,
   currentPlayer: 'red' | 'blue'
-): GameAnalysis {
-  // Calculate current position value
-  const currentValue = calculateGameValue(position);
-  
-  console.log('Current position value:', currentValue);
-  
-  // Determine who is winning
-  // Positive value = Blue winning
-  // Negative value = Red winning
-  // Zero = Next player to move loses (previous player wins)
-  
-  const cmp = compareDyadic(currentValue, { numerator: 0, denominator: 1 });
-  
-  // IMPORTANT: Value = 0 means current player is in a losing position,
-  // but they still must make a move! So we call findBestLosingMove
-  if (cmp === 0) {
-    console.log('Position value is 0 - current player is losing but must still move');
-    return findBestLosingMove(position, currentPlayer, currentValue);
+): number {
+  // Base cases
+  if (depth === 0) {
+    return evaluatePosition(position);
   }
   
-  // If value favors current player, they're winning
-  const favorsCurrent = (currentPlayer === 'blue' && cmp > 0) || 
-                        (currentPlayer === 'red' && cmp < 0);
-  
-  if (!favorsCurrent) {
-    // Current player is losing, but they still have to move
-    // Find the move that gets closest to 0 (minimizes disadvantage)
-    return findBestLosingMove(position, currentPlayer, currentValue);
+  // Check if game is over
+  if (isGameOver(position, currentPlayer)) {
+    // Current player has no moves - they lose
+    return maximizingPlayer ? -10000 : 10000;
   }
   
-  // Current player is winning - find the move that maintains the win
-  return findWinningMove(position, currentPlayer, currentValue);
-}
-
-function findWinningMove(
-  position: HackenbushPosition,
-  currentPlayer: 'red' | 'blue',
-  currentValue: DyadicNumber
-): GameAnalysis {
   const playerEdges = position.edges.filter(
     e => e.active && e.color === currentPlayer
   );
   
-  console.log(`Finding winning move for ${currentPlayer}`);
-  console.log(`Available active edges:`, playerEdges.map(e => e.id));
-  
-  // If no moves available (shouldn't happen in winning position)
-  if (playerEdges.length === 0) {
-    console.log('No active edges available - returning null');
-    return {
-      value: currentValue,
-      optimalMove: null,
-      winning: false
-    };
-  }
-  
-  let bestMove: string = playerEdges[0].id; // Initialize with first edge
-  let bestResultValue = currentValue;
-  let foundWinningMove = false;
-  
-  for (const edge of playerEdges) {
-    // Simulate removing this edge
-    const newPosition = {
-      ...position,
-      edges: position.edges.map(e => 
-        e.id === edge.id ? { ...e, active: false } : e
-      )
-    };
-    
-    // Recalculate connected components
-    newPosition.edges = removeDisconnectedEdges(newPosition);
-    
-    const newValue = calculateGameValue(newPosition);
-    
-    // After our move, opponent will move, so we want a position that's still favorable
-    // For a winning move, the position should still favor us after opponent's best response
-    
-    const newAbs = Math.abs(newValue.numerator / newValue.denominator);
-    
-    const stillWinning = (currentPlayer === 'blue' && compareDyadic(newValue, { numerator: 0, denominator: 1 }) >= 0) ||
-                         (currentPlayer === 'red' && compareDyadic(newValue, { numerator: 0, denominator: 1 }) <= 0);
-    
-    console.log(`Edge ${edge.id}: new value = ${formatDyadic(newValue)}, still winning: ${stillWinning}`);
-    
-    if (stillWinning) {
-      foundWinningMove = true;
-      if (bestMove === playerEdges[0].id || newAbs < Math.abs(bestResultValue.numerator / bestResultValue.denominator)) {
-        bestMove = edge.id;
-        bestResultValue = newValue;
-      }
-    }
-  }
-  
-  // If no move maintains winning position, just pick the best available move
-  if (!foundWinningMove) {
-    console.log('No move maintains winning advantage, choosing best available move');
-    let bestDistance = Infinity;
+  if (maximizingPlayer) {
+    let maxEval = -Infinity;
     
     for (const edge of playerEdges) {
-      const newPosition = {
+      const newPosition: HackenbushPosition = {
         ...position,
         edges: position.edges.map(e => 
           e.id === edge.id ? { ...e, active: false } : e
         )
       };
       
-      newPosition.edges = removeDisconnectedEdges(newPosition);
-      const newValue = calculateGameValue(newPosition);
-      const distanceToZero = Math.abs(newValue.numerator / newValue.denominator);
+      const cleanPosition = removeDisconnectedEdges(newPosition);
+      const nextPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
       
-      if (distanceToZero < bestDistance) {
-        bestDistance = distanceToZero;
-        bestMove = edge.id;
-        bestResultValue = newValue;
+      const evaluation = minimax(cleanPosition, depth - 1, alpha, beta, false, nextPlayer);
+      maxEval = Math.max(maxEval, evaluation);
+      alpha = Math.max(alpha, evaluation);
+      
+      if (beta <= alpha) {
+        break; // Beta cutoff
       }
     }
+    
+    return maxEval;
+  } else {
+    let minEval = Infinity;
+    
+    for (const edge of playerEdges) {
+      const newPosition: HackenbushPosition = {
+        ...position,
+        edges: position.edges.map(e => 
+          e.id === edge.id ? { ...e, active: false } : e
+        )
+      };
+      
+      const cleanPosition = removeDisconnectedEdges(newPosition);
+      const nextPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+      
+      const evaluation = minimax(cleanPosition, depth - 1, alpha, beta, true, nextPlayer);
+      minEval = Math.min(minEval, evaluation);
+      beta = Math.min(beta, evaluation);
+      
+      if (beta <= alpha) {
+        break; // Alpha cutoff
+      }
+    }
+    
+    return minEval;
   }
-  
-  console.log(`Best winning move for ${currentPlayer}: ${bestMove}`);
-  
-  return {
-    value: currentValue,
-    optimalMove: bestMove, // Always returns an edge if edges exist
-    winning: true
-  };
 }
 
-function findBestLosingMove(
+// Find the best move using minimax
+export function analyzeBlueRedHackenbush(
   position: HackenbushPosition,
-  currentPlayer: 'red' | 'blue',
-  currentValue: DyadicNumber
+  currentPlayer: 'red' | 'blue'
 ): GameAnalysis {
   const playerEdges = position.edges.filter(
     e => e.active && e.color === currentPlayer
   );
   
-  console.log(`Finding best losing move for ${currentPlayer}`);
-  console.log(`Available active edges:`, playerEdges.map(e => e.id));
-  
-  // If no moves available, we lose immediately
   if (playerEdges.length === 0) {
-    console.log('No active edges available - returning null');
+    console.log('No moves available - current player loses');
     return {
-      value: currentValue,
+      value: { numerator: 0, denominator: 1 },
       optimalMove: null,
       winning: false
     };
   }
   
-  // Heuristic for losing player:
-  // Choose the move that gets the game value closest to 0
-  // This minimizes opponent's advantage and maximizes resistance
+  const isMaximizing = currentPlayer === 'blue';
+  const searchDepth = 8; // Adjust depth based on performance needs
   
-  let bestMove = playerEdges[0].id; // Start with first available edge
-  let bestValue: DyadicNumber = currentValue;
-  let bestDistance = Infinity;
+  let bestMove = playerEdges[0].id;
+  let bestValue = isMaximizing ? -Infinity : Infinity;
+  
+  console.log(`Finding best move for ${currentPlayer} (depth ${searchDepth})...`);
   
   for (const edge of playerEdges) {
-    // Double-check edge is active
-    if (!edge.active) {
-      console.log(`Skipping inactive edge: ${edge.id}`);
-      continue;
-    }
-    
-    const newPosition = {
+    const newPosition: HackenbushPosition = {
       ...position,
       edges: position.edges.map(e => 
         e.id === edge.id ? { ...e, active: false } : e
       )
     };
     
-    newPosition.edges = removeDisconnectedEdges(newPosition);
-    const newValue = calculateGameValue(newPosition);
-    const newDecimal = newValue.numerator / newValue.denominator;
+    const cleanPosition = removeDisconnectedEdges(newPosition);
+    const nextPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
     
-    // Distance to zero (smaller is better - we want to make it harder for opponent)
-    const distanceToZero = Math.abs(newDecimal);
+    const evaluation = minimax(
+      cleanPosition,
+      searchDepth - 1,
+      -Infinity,
+      Infinity,
+      !isMaximizing,
+      nextPlayer
+    );
     
-    console.log(`Edge ${edge.id}: new value = ${formatDyadic(newValue)} (distance: ${distanceToZero.toFixed(4)})`);
+    console.log(`  Edge ${edge.id}: eval = ${evaluation}`);
     
-    // Choose move that gets closest to zero
-    if (distanceToZero < bestDistance) {
-      bestDistance = distanceToZero;
+    if (isMaximizing && evaluation > bestValue) {
+      bestValue = evaluation;
       bestMove = edge.id;
-      bestValue = newValue;
+    } else if (!isMaximizing && evaluation < bestValue) {
+      bestValue = evaluation;
+      bestMove = edge.id;
     }
   }
   
-  console.log(`Best losing move for ${currentPlayer}: ${bestMove}`);
-  console.log(`Results in value: ${formatDyadic(bestValue)} (distance: ${bestDistance.toFixed(4)})`);
+  console.log(`Best move: ${bestMove} (eval: ${bestValue})`);
   
-  // Final sanity check - verify the edge we're returning is actually active
-  const chosenEdge = position.edges.find(e => e.id === bestMove);
-  if (!chosenEdge?.active) {
-    console.error('WARNING: Chosen edge is not active! Falling back to first active edge');
-    bestMove = playerEdges[0].id;
-  }
+  const currentEval = evaluatePosition(position);
+  const isWinning = (currentPlayer === 'blue' && currentEval > 0) || 
+                    (currentPlayer === 'red' && currentEval < 0);
   
   return {
-    value: currentValue,
-    optimalMove: bestMove, // Always returns an active edge if any exist
-    winning: false
+    value: { numerator: currentEval, denominator: 1 },
+    optimalMove: bestMove,
+    winning: isWinning
   };
 }
 
-// Remove edges that are disconnected from ground after a move
-function removeDisconnectedEdges(position: HackenbushPosition): Array<{
-  id: string;
-  from: string;
-  to: string;
-  color: 'red' | 'blue';
-  active: boolean;
-}> {
-  const distances = computeDistances(position);
-  
-  return position.edges.map(edge => {
-    if (!edge.active) return edge;
-    
-    const fromConnected = distances.has(edge.from);
-    const toConnected = distances.has(edge.to);
-    
-    return {
-      ...edge,
-      active: fromConnected && toConnected
-    };
-  });
-}
-
-// Helper to convert dyadic to decimal for display
+// Helper functions for compatibility
 export function dyadicToDecimal(d: DyadicNumber): number {
   return d.numerator / d.denominator;
 }
 
-// Helper to format dyadic as a string with mixed fractions
 export function formatDyadic(d: DyadicNumber): string {
   if (d.numerator === 0) return "0";
   if (d.denominator === 1) return d.numerator.toString();
@@ -372,7 +258,6 @@ export function formatDyadic(d: DyadicNumber): string {
   const absNumerator = Math.abs(d.numerator);
   const sign = d.numerator < 0 ? "-" : "";
   
-  // Check if it's an improper fraction (convert to mixed number)
   if (absNumerator >= d.denominator) {
     const wholePart = Math.floor(absNumerator / d.denominator);
     const remainder = absNumerator % d.denominator;
@@ -384,22 +269,16 @@ export function formatDyadic(d: DyadicNumber): string {
     return `${sign}${wholePart} ${remainder}/${d.denominator}`;
   }
   
-  // Proper fraction
   return `${sign}${absNumerator}/${d.denominator}`;
 }
 
-// Helper to format dyadic with Unicode superscript/subscript for beautiful display
 export function formatDyadicFancy(d: DyadicNumber): string {
   if (d.numerator === 0) return "0";
   if (d.denominator === 1) return d.numerator.toString();
   
   const absNumerator = Math.abs(d.numerator);
-  const sign = d.numerator < 0 ? "−" : ""; // Using proper minus sign
+  const sign = d.numerator < 0 ? "−" : "";
   
-  // For HTML display, you could return:
-  // return `${sign}<sup>${absNumerator}</sup>⁄<sub>${d.denominator}</sub>`;
-  
-  // For plain text with Unicode fraction slash
   if (absNumerator >= d.denominator) {
     const wholePart = Math.floor(absNumerator / d.denominator);
     const remainder = absNumerator % d.denominator;
