@@ -19,6 +19,7 @@ type T = {
         instructions_4: string,
         instructions_5: string,
         instructions_6: string,
+        intructions_6_misere: string,
         // Settings
         settings_title: string,
         player1_color: string,
@@ -29,6 +30,10 @@ type T = {
         misere_decription: string,
         normal_link: string,
         normal_description: string,
+        play_your_own_cta: string,
+        play_your_own_desc: string,
+        return_base: string,
+        contribute: string,
         // Tooltips
         how_to_play: string,
         old_games: string,
@@ -63,6 +68,7 @@ export const translations = {
         instructions_4: "All edges that are disconnected from the ground disappear.",
         instructions_5: "The game ends when some player cannot choose any more edges.",
         instructions_6: "The last player to make a move wins the game.",
+        intructions_6_misere: "The penultimate player to make a move wins the game: you need to remove all your edges but let at least one of the opponent remaining.",
         // Settings
         settings_title: "Settings",
         player1_color: "Player 1 color",
@@ -73,6 +79,10 @@ export const translations = {
         misere_decription: "In the Misère version, the player wins if it is the penultimate to make a move",
         normal_link: "Change to Normal version",
         normal_description: "In the Normal version, the player wins if it is the last one to make a move",
+        play_your_own_cta: "Play your own Hackenbush",
+        play_your_own_desc: "Design your own Hackenbush game, load it and play it!",
+        return_base: "Return to base game",
+        contribute: "Contribute to the project",
         // Tooltips
         how_to_play: "How to play",
         old_games: "Old games",
@@ -105,6 +115,10 @@ export const translations = {
         instructions_4: "Todas as arestas que ficarem desconectadas da base desaparecem.",
         instructions_5: "O jogo acaba quando algum jogador não puder mais escolher uma aresta.",
         instructions_6: "O último jogador a fazer um movimento ganha o jogo.",
+        intructions_6_misere: "O penúltimo jogador a jogar vence: você precisar derrubar todas as suas arestas, mas deixar pelo menos uma do oponente restando.",
+        play_your_own_cta: "Jogue seu próprio Hackenbush",
+        play_your_own_desc: "Crie o seu próprio jogo Hackenbush, carregue-o aqui e jogue!",
+        return_base: "Retornar ao jogo base",
         // Settings
         settings_title: "Configurações",
         player1_color: "Cor do Jogador 1",
@@ -115,6 +129,7 @@ export const translations = {
         misere_decription: "Na versão Misère, o jogador vence se for o penúltimo a jogar",
         normal_link: "Mudar para versão Normal",
         normal_description: "Na versão Normal, o jogador vence se for o último a jogar",
+        contribute: "Contribua para o projeto",
         // Tooltips
         how_to_play: "Como jogar",
         old_games: "Jogos antigos",
@@ -147,6 +162,8 @@ export const translations = {
         instructions_4: "Toutes les lignes déconnectées du sol disparaissent.",
         instructions_5: "Le jeu se termine lorsqu'un joueur ne peut plus choisir aucune ligne.",
         instructions_6: "Le dernier joueur à jouer remporte la partie.",
+        intructions_6_misere: "L'avant-dernier à jouer remporte la partie : vous devez éliminer tous vos lignes, mais laisser au moins un ligne à votre adversaire.",
+        return_base: "Retour au jeu de base",
         // Settings
         settings_title: "Paramètres",
         player1_color: "Couleur du joueur 1",
@@ -157,6 +174,9 @@ export const translations = {
         misere_decription: "Dans la version Misère, le joueur gagne s'il est l'avant-dernier à jouer",
         normal_link: "Passer à la version Normale",
         normal_description: "Dans la version normale, le joueur gagne s'il est le dernier à jouer",
+        play_your_own_cta: "Jouez à votre propre Hackenbush",
+        play_your_own_desc: "Créez votre propre jeu Hackenbush, téléchargez-le ici et jouez!",
+        contribute: "Contribuez au projet",
         // Tooltips
         how_to_play: "Comment jouer",
         old_games: "Jeux anciens",

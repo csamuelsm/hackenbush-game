@@ -12,7 +12,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily' as const,
       priority: 0.8,
     })
+    gameUrls.push({
+      url: `${baseUrl}/?misere=true&game=${i}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    })
   }
+  gameUrls.push({url: `${baseUrl}/your-own/`, lastModified: new Date(),priority: 0.8,});
+  gameUrls.push({url: `${baseUrl}/your-own/?misere=true`, lastModified: new Date(),priority: 0.8,});
 
   return [
     {

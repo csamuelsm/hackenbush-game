@@ -21,12 +21,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hackenbush - Daily Combinatorial Game",
+    default: "Hackenbush - Weekly Combinatorial Game",
     template: "%s | Hackenbush Game"
   },
-  description: "Play Hackenbush online, the classic combinatorial game by John Conway. Learn game theory while playing this strategic mathematical game. Free daily puzzles!",
+  description: "Play Hackenbush online, the classic combinatorial game by John Conway. Learn game theory while playing this strategic mathematical game. Play the Normal or the Misère version. Free weekly puzzles! You can also make your own puzzles!",
   keywords: [
     "Hackenbush",
+    "Hackenbush normal",
+    "Hackenbush misère",
+    "normal combinatorial game theory",
+    "misère combinatorial game theory",
+    "misère games",
     "John Conway",
     "combinatorial game theory",
     "mathematical games",
@@ -70,7 +75,7 @@ export const metadata: Metadata = {
     alternateLocale: ["pt_BR", "fr_FR"],
     url: "https://hackenbush.vercel.app",
     title: "Hackenbush - Daily Combinatorial Game",
-    description: "Play Hackenbush online, the classic combinatorial game by John Conway. Learn game theory while playing this strategic mathematical game. Free daily puzzles!",
+    description: "Play Hackenbush online, the classic combinatorial game by John Conway. Learn game theory while playing this strategic mathematical game. Play the Normal or the Misère version. Free weekly puzzles! You can also make your own puzzles!",
     siteName: "Hackenbush Game",
     images: [
       {
@@ -86,7 +91,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Hackenbush - John Conway's Combinatorial Game",
-    description: "Play Hackenbush online. Daily puzzles and game theory challenges!",
+    description: "Play Hackenbush online. Weekly puzzles and game theory challenges!",
     images: ["https://hackenbush.vercel.app/twitter-image.png"],
     creator: "@csamuelssm" // Adicione seu Twitter se tiver
   },

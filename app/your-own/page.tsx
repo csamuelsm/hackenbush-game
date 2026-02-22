@@ -253,6 +253,15 @@ export default function Hackenbush() {
                           {version == 'normal' ? t.misere_decription : t.normal_description}
                         </Text>
                       </Box>
+
+                        <Box>
+                            <Link variant="underline" 
+                            colorPalette="teal"
+                            href="/"
+                            >
+                                <b>{t.return_base}</b>
+                            </Link>
+                        </Box>
                     </VStack>
                   </Drawer.Body>
 
@@ -262,7 +271,7 @@ export default function Hackenbush() {
                     </Text>*/}
                     <VStack textAlign="left">
                       <Text fontSize="sm" color="fg.subtle" lineHeight="short">
-                        <b>Contribua para o projeto</b>
+                        <b>{t.contribute}</b>
                       </Text>
 
                       <HStack flexWrap="wrap">
@@ -272,9 +281,11 @@ export default function Hackenbush() {
                         <Link href="https://buymeacoffee.com/csamuelssm">
                           <Button colorPalette="orange"><SiBuymeacoffee /> Buy me a coffee</Button>
                         </Link>
-                        <Link href="https://buymeacoffee.com/csamuelssm">
-                          <Button colorPalette="teal"><SiPix /> Pix</Button>
-                        </Link>
+                        
+                        <Tooltip content="b93565ad-4c77-473d-87bf-7964c15cf6d2">
+                            <Button colorPalette="teal"><SiPix /> Pix</Button>
+                        </Tooltip>
+                        
                         <Link href="https://github.com/csamuelsm/hackenbush-game">
                             <Button colorPalette="black"><FaGithubAlt /> Github</Button>
                         </Link>
@@ -301,13 +312,13 @@ export default function Hackenbush() {
               <MdQuestionMark />
             </Tooltip>
           </IconButton>
-          <OldGames 
+          {/*<OldGames 
             tooltipContent={t.old_games} 
             title={t.old_games}
             loading={t.loading}
             notFound={t.not_found}
             game={t.game}
-          />
+          />*/}
         </HStack>
       </Container>
 
@@ -328,7 +339,9 @@ export default function Hackenbush() {
             </>
           ) : (
             <>
-            <Link colorPalette="blue" variant="underline" href="#">
+            <Link colorPalette="blue" variant="underline" 
+                href={lang == "Português" ? "https://github.com/csamuelsm/hackenbush-game/blob/main/README_pt.md" : "https://github.com/csamuelsm/hackenbush-game/blob/main/README.md"}
+            >
                 <Text marginBottom={3} fontWeight="bold">
                     {t.guide}
                 </Text>
@@ -459,7 +472,7 @@ export default function Hackenbush() {
         instructions_3={t.instructions_3}
         instructions_4={t.instructions_4}
         instructions_5={t.instructions_5}
-        instructions_6={t.instructions_6}
+        instructions_6={version === 'normal' ? t.instructions_6 : t.intructions_6_misere}
         red={t.red}
         blue={t.blue}
       />

@@ -234,6 +234,18 @@ export default function Hackenbush() {
                           {version == 'normal' ? t.misere_decription : t.normal_description}
                         </Text>
                       </Box>
+
+                      <Box>
+                        <Link variant="underline" 
+                          colorPalette="teal"
+                          href="/your-own"
+                        >
+                            <b>{t.play_your_own_cta}</b>
+                        </Link>
+                        <Text fontSize="xs" color="fg.subtle" lineHeight="short">
+                          {t.play_your_own_desc}
+                        </Text>
+                      </Box>
                     </VStack>
                   </Drawer.Body>
 
@@ -243,7 +255,7 @@ export default function Hackenbush() {
                     </Text>*/}
                     <VStack textAlign="left">
                       <Text fontSize="sm" color="fg.subtle" lineHeight="short">
-                        <b>Contribua para o projeto</b>
+                        <b>{t.contribute}</b>
                       </Text>
 
                       <HStack flexWrap="wrap">
@@ -253,9 +265,11 @@ export default function Hackenbush() {
                         <Link href="https://buymeacoffee.com/csamuelssm">
                           <Button colorPalette="orange"><SiBuymeacoffee /> Buy me a coffee</Button>
                         </Link>
-                        <Link href="https://buymeacoffee.com/csamuelssm">
+                        
+                        <Tooltip content="b93565ad-4c77-473d-87bf-7964c15cf6d2">
                           <Button colorPalette="teal"><SiPix /> Pix</Button>
-                        </Link>
+                        </Tooltip>
+
                         <Link href="https://github.com/csamuelsm/hackenbush-game">
                           <Button colorPalette="black"><FaGithubAlt /> Github</Button>
                         </Link>
@@ -416,7 +430,7 @@ export default function Hackenbush() {
         instructions_3={t.instructions_3}
         instructions_4={t.instructions_4}
         instructions_5={t.instructions_5}
-        instructions_6={t.instructions_6}
+        instructions_6={version === 'normal' ? t.instructions_6 : t.intructions_6_misere}
         red={t.red}
         blue={t.blue}
       />
