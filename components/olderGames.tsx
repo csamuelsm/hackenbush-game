@@ -4,6 +4,8 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { MdCalendarMonth, MdOutlineCalendarMonth } from "react-icons/md";
 import { REFERENCE_DATE } from "@/lib/useGamePath";
 
+import { addOrUpdateUrlParam } from "@/lib/hrefUtil";
+
 interface GameFile {
   filename: string;
   number: number;
@@ -128,7 +130,8 @@ const OldGames = (props : {
                                 // Handle game selection
                                 console.log('Selected game:', game.number);
                                 // You can add navigation or load the game here
-                                window.location.href = `/?game=${game.number}`;
+                                //window.location.href = `/?game=${game.number}`;
+                                addOrUpdateUrlParam('game', String(game.number));
                             }}
                             >
                                 <img

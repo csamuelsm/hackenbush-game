@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { analyzeBlueRedHackenbush, formatDyadic, dyadicToDecimal, DyadicNumber } from '@/lib/hackenbush';
+import useGameVersion from '@/lib/useGameVersion';
 
 // Type definitions
 export interface Edge {
@@ -48,6 +49,8 @@ export default function SvgHackenbush({
   const [winner, setWinner] = useState<'red' | 'blue' | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { version } = useGameVersion();
 
   // Ensure component only renders on client
   useEffect(() => {
@@ -307,11 +310,15 @@ export default function SvgHackenbush({
         (e) => e.active && (e.color === nextPlayer || e.color === 'green')
       );
 
-      if (!opponentHasMoves) {
+      if (version == 'normal' && !opponentHasMoves) {
         // Current player wins!
         console.log(`✓ ${currentPlayer.toUpperCase()} WINS! No moves left for ${nextPlayer}`);
         setGameOver(true);
         setWinner(currentPlayer);
+      } else if (version == 'misere' && !opponentHasMoves) {
+        console.log(`✓ ${nextPlayer.toUpperCase()} WINS!`);
+        setGameOver(true);
+        setWinner(nextPlayer);
       } else {
         // Switch to next player
         setCurrentPlayer(nextPlayer);
@@ -494,7 +501,7 @@ export default function SvgHackenbush({
       vertices: vertices
     };
 
-    const analysis = analyzeBlueRedHackenbush(position, currentPlayer);
+    const analysis = analyzeBlueRedHackenbush(position, currentPlayer, version);
     
     console.log('Game Value:', formatDyadic(analysis.value), '=', dyadicToDecimal(analysis.value));
     console.log('Current Player:', currentPlayer);

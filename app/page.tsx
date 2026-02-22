@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Badge, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, VStack } from "@chakra-ui/react";
 import { MdOutlineSettings, MdQuestionMark } from 'react-icons/md';
 
 import SocialClipboard from '@/components/clipboard';
@@ -12,6 +12,8 @@ import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
 //import { formatDyadicFancy } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
 import useGamePath from '@/lib/useGamePath';
+import useGameVersion from '@/lib/useGameVersion';
+import { addOrUpdateUrlParam } from '@/lib/hrefUtil';
 
 import confetti from 'canvas-confetti';
 
@@ -94,7 +96,8 @@ export default function Hackenbush() {
   }, []);
 
   const { gamePath, gNumber, loading } = useGamePath();
-
+  const { version } = useGameVersion();
+  
   // Handle game state updates from the SVG component
   const handleGameStateChange = (state: GameState) => {
     console.log('Game value:', state.gameValueDecimal);
@@ -211,6 +214,24 @@ export default function Hackenbush() {
                           <SegmentGroup.Items items={["Português", "English", "Français"]} />
                         </SegmentGroup.Root>
                       </Field.Root>
+
+                      <Box>
+                        <Link variant="underline" 
+                          colorPalette={version == 'normal' ? 'red' : 'blue'}
+                          onClick={() => {
+                            if (version === 'normal') {
+                              addOrUpdateUrlParam('misere', 'true');
+                            } else {
+                              addOrUpdateUrlParam('misere', 'false');
+                            }
+                          }}
+                        >
+                            {version == 'normal' ? t.misere_link : t.normal_link}
+                        </Link>
+                        <Text fontSize="xs" color="fg.subtle" lineHeight="short">
+                          {version == 'normal' ? t.misere_decription : t.normal_description}
+                        </Text>
+                      </Box>
                     </VStack>
                   </Drawer.Body>
 
@@ -223,7 +244,14 @@ export default function Hackenbush() {
               </Drawer.Positioner>
             </Portal>
           </Drawer.Root>
-          <Text fontWeight="bold" textStyle="xl">Hackenbush</Text>
+          <Text fontWeight="bold" textStyle="xl">
+            Hackenbush {" "}
+            <Badge
+              colorPalette={version == 'normal' ? 'blue' : 'red'}
+            >
+              {version == 'normal' ? 'NORMAL' : 'MISÈRE'}
+            </Badge>
+          </Text>
           <IconButton 
             variant="outline" size="sm"
             onClick={() => setOpen(true)}
@@ -300,6 +328,7 @@ export default function Hackenbush() {
               <SocialClipboard 
                 lang={lang} won={gameOver && winner === player1Color}
                 color={player1Color}
+                version={version}
               />
               </>
             )}

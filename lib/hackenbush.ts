@@ -81,7 +81,10 @@ function removeDisconnectedEdges(position: HackenbushPosition): HackenbushPositi
 
 // Simple heuristic evaluation: count edges
 // Positive = Blue advantage, Negative = Red advantage
-function evaluatePosition(position: HackenbushPosition): number {
+function evaluatePosition(
+  position: HackenbushPosition, 
+  gameVersion: 'normal' | 'misere'): number {
+
   const activeEdges = position.edges.filter(e => e.active);
   
   let blueCount = 0;
@@ -91,14 +94,56 @@ function evaluatePosition(position: HackenbushPosition): number {
     if (edge.color === 'blue') blueCount++;
     else if (edge.color === 'red') redCount++;
   }
+
+  const edgeDifference = blueCount - redCount;
+
+  // In Misère, we want to AVOID being the last to move
+  // So we invert the evaluation when total edges are low
+  if (gameVersion === 'misere') {
+    const totalEdges = blueCount + redCount;
+    
+    // When getting close to endgame, invert the evaluation
+    // The player who will be forced to take the last move loses
+    if (totalEdges <= 8) {
+      return -edgeDifference;
+    }
+  }
   
-  return blueCount - redCount;
+  return edgeDifference;
 }
 
 // Check if game is over (no moves for current player)
 function isGameOver(position: HackenbushPosition, player: 'red' | 'blue'): boolean {
   const activeEdges = position.edges.filter(e => e.active && e.color === player);
   return activeEdges.length === 0;
+}
+
+// Check if someone won in Misère mode
+function checkMisereWin(
+  position: HackenbushPosition, 
+  lastPlayer: 'red' | 'blue'
+): { gameOver: boolean; winner: 'red' | 'blue' | null } {
+  const activeEdges = position.edges.filter(e => e.active);
+  const blueEdges = activeEdges.filter(e => e.color === 'blue');
+  const redEdges = activeEdges.filter(e => e.color === 'red');
+  
+  // In Misère: you WIN if you have no moves left BUT opponent still has moves
+  if (blueEdges.length === 0 && redEdges.length > 0) {
+    return { gameOver: true, winner: 'blue' };
+  }
+  
+  if (redEdges.length === 0 && blueEdges.length > 0) {
+    return { gameOver: true, winner: 'red' };
+  }
+  
+  // Both have no moves = last player to move took everything
+  // In Misère: last player to move LOSES
+  if (blueEdges.length === 0 && redEdges.length === 0) {
+    const winner = lastPlayer === 'blue' ? 'red' : 'blue';
+    return { gameOver: true, winner };
+  }
+  
+  return { gameOver: false, winner: null };
 }
 
 // Minimax with alpha-beta pruning
@@ -108,17 +153,47 @@ function minimax(
   alpha: number,
   beta: number,
   maximizingPlayer: boolean,
-  currentPlayer: 'red' | 'blue'
+  currentPlayer: 'red' | 'blue',
+  gameVersion: 'normal' | 'misere',
+  lastPlayer: 'red' | 'blue'
 ): number {
   // Base cases
   if (depth === 0) {
-    return evaluatePosition(position);
+    return evaluatePosition(position, gameVersion);
   }
-  
-  // Check if game is over
-  if (isGameOver(position, currentPlayer)) {
-    // Current player has no moves - they lose
-    return maximizingPlayer ? -10000 : 10000;
+
+  // Check for Misère win conditions
+  if (gameVersion === 'misere') {
+    const misereCheck = checkMisereWin(position, lastPlayer);
+    if (misereCheck.gameOver) {
+      if (misereCheck.winner === currentPlayer) {
+        return maximizingPlayer ? 10000 : -10000;
+      } else {
+        return maximizingPlayer ? -10000 : 10000;
+      }
+    }
+  }
+
+  // Check for game over in Normal mode
+  if (gameVersion === 'normal') {
+    const activeEdges = position.edges.filter(e => e.active);
+    const blueEdges = activeEdges.filter(e => e.color === 'blue');
+    const redEdges = activeEdges.filter(e => e.color === 'red');
+    
+    // If both players have no moves, last player to move WINS in normal
+    if (blueEdges.length === 0 && redEdges.length === 0) {
+      const winner = lastPlayer;  // <-- lastPlayer venceu (fez último movimento)
+      if (winner === currentPlayer) {
+        return maximizingPlayer ? 10000 : -10000;
+      } else {
+        return maximizingPlayer ? -10000 : 10000;
+      }
+    }
+    
+    // If current player has no moves but opponent still has, current player loses
+    if (isGameOver(position, currentPlayer)) {
+      return maximizingPlayer ? -10000 : 10000;
+    }
   }
   
   const playerEdges = position.edges.filter(
@@ -139,7 +214,7 @@ function minimax(
       const cleanPosition = removeDisconnectedEdges(newPosition);
       const nextPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
       
-      const evaluation = minimax(cleanPosition, depth - 1, alpha, beta, false, nextPlayer);
+      const evaluation = minimax(cleanPosition, depth - 1, alpha, beta, false, nextPlayer, gameVersion, currentPlayer);
       maxEval = Math.max(maxEval, evaluation);
       alpha = Math.max(alpha, evaluation);
       
@@ -163,7 +238,7 @@ function minimax(
       const cleanPosition = removeDisconnectedEdges(newPosition);
       const nextPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
       
-      const evaluation = minimax(cleanPosition, depth - 1, alpha, beta, true, nextPlayer);
+      const evaluation = minimax(cleanPosition, depth - 1, alpha, beta, true, nextPlayer, gameVersion, currentPlayer);
       minEval = Math.min(minEval, evaluation);
       beta = Math.min(beta, evaluation);
       
@@ -179,7 +254,8 @@ function minimax(
 // Find the best move using minimax
 export function analyzeBlueRedHackenbush(
   position: HackenbushPosition,
-  currentPlayer: 'red' | 'blue'
+  currentPlayer: 'red' | 'blue',
+  gameVersion: 'normal' | 'misere'
 ): GameAnalysis {
   const playerEdges = position.edges.filter(
     e => e.active && e.color === currentPlayer
@@ -219,7 +295,9 @@ export function analyzeBlueRedHackenbush(
       -Infinity,
       Infinity,
       !isMaximizing,
-      nextPlayer
+      nextPlayer,
+      gameVersion,
+      currentPlayer
     );
     
     console.log(`  Edge ${edge.id}: eval = ${evaluation}`);
@@ -235,9 +313,23 @@ export function analyzeBlueRedHackenbush(
   
   console.log(`Best move: ${bestMove} (eval: ${bestValue})`);
   
-  const currentEval = evaluatePosition(position);
-  const isWinning = (currentPlayer === 'blue' && currentEval > 0) || 
-                    (currentPlayer === 'red' && currentEval < 0);
+  const currentEval = evaluatePosition(position, gameVersion);
+  let isWinning : boolean;
+
+  if (gameVersion === 'misere') {
+    const otherPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+    const misereCheck = checkMisereWin(position, otherPlayer);
+    if (misereCheck.gameOver) {
+      isWinning = misereCheck.winner === currentPlayer;
+    } else {
+      // In misère during mid-game, having fewer edges is better
+      isWinning = (currentPlayer === 'blue' && currentEval < 0) || 
+                (currentPlayer === 'red' && currentEval > 0);
+    }
+  } else {
+    isWinning = (currentPlayer === 'blue' && currentEval > 0) || 
+              (currentPlayer === 'red' && currentEval < 0);
+  }
   
   return {
     value: { numerator: currentEval, denominator: 1 },

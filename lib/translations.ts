@@ -25,6 +25,10 @@ type T = {
         computer_play: string,
         language: string,
         description: string,
+        misere_link: string,
+        misere_decription: string,
+        normal_link: string,
+        normal_description: string,
         // Tooltips
         how_to_play: string,
         old_games: string,
@@ -60,6 +64,10 @@ export const translations = {
         computer_play: "Play against computer",
         language: "Language",
         description: "Hackenbush is a game created by mathematician John Conway and one of the foundations of Combinatorial Game Theory, which is widely studied in mathematics and computer science.",
+        misere_link: "Change to Misère version",
+        misere_decription: "In the Misère version, the player wins if it is the penultimate to make a move",
+        normal_link: "Change to Normal version",
+        normal_description: "In the Normal version, the player wins if it is the last one to make a move",
         // Tooltips
         how_to_play: "How to play",
         old_games: "Old games",
@@ -93,6 +101,10 @@ export const translations = {
         computer_play: "Jogar contra computador",
         language: "Língua",
         description: "Hackenbush é um jogo criado pelo matemático John Conway e uma das bases da Teoria dos Jogos Combinatórios, bastante estudada na matemática e na ciência da computação.",
+        misere_link: "Mudar para versão Misère",
+        misere_decription: "Na versão Misère, o jogador vence se for o penúltimo a jogar",
+        normal_link: "Mudar para versão Normal",
+        normal_description: "Na versão Normal, o jogador vence se for o último a jogar",
         // Tooltips
         how_to_play: "Como jogar",
         old_games: "Jogos antigos",
@@ -126,6 +138,10 @@ export const translations = {
         computer_play: "Jouer contre la machine",
         language: "Langue",
         description: "Hackenbush est un jeu créé par le mathématicien John Conway et l'un des fondements de la théorie des jeux combinatoires, largement étudiée en mathématiques et en informatique.",
+        misere_link: "Passer à la version Misère",
+        misere_decription: "Dans la version Misère, le joueur gagne s'il est l'avant-dernier à jouer",
+        normal_link: "Passer à la version Normale",
+        normal_description: "Dans la version normale, le joueur gagne s'il est le dernier à jouer",
         // Tooltips
         how_to_play: "Comment jouer",
         old_games: "Jeux anciens",
