@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Badge, Box, Button, Container, Drawer, Field, Fieldset, Flex, HStack, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, Button, Container, Drawer, Field, Fieldset, FileUpload, Flex, HStack, Icon, IconButton, Link, Portal, RadioGroup, SegmentGroup, Spinner, Switch, Text, useFileUpload, VStack } from "@chakra-ui/react";
 import { MdOutlineSettings, MdQuestionMark } from 'react-icons/md';
 import { FaGithubAlt, FaPaypal } from "react-icons/fa";
 
@@ -12,7 +12,6 @@ import { Tooltip } from "@/components/ui/tooltip";
 import SvgHackenbush, { GameState } from '@/components/svgHackenbush';
 //import { formatDyadicFancy } from '@/lib/hackenbush';
 import OldGames from '@/components/olderGames';
-import useGamePath from '@/lib/useGamePath';
 import useGameVersion from '@/lib/useGameVersion';
 import { addOrUpdateUrlParam } from '@/lib/hrefUtil';
 
@@ -21,6 +20,7 @@ import confetti from 'canvas-confetti';
 import { translations } from '@/lib/translations';
 import ColorModeToggle from '@/components/colorModeToggle';
 import { SiBuymeacoffee, SiPix } from 'react-icons/si';
+import { LuUpload } from 'react-icons/lu';
 
 type Player = 'red' | 'blue';
 
@@ -33,8 +33,28 @@ export default function Hackenbush() {
   const [player1Color, setPlayer1Color] = useState<Player>("red");
   const [computerPlays, setComputerPlays] = useState<boolean>(true);
   const [lang, setLang] = useState<"English" | "Português" | "Français">("English");
+  const [loadedSvg, setLoadedSvg] = useState<string | null>(null);
 
   const t = translations[lang];
+
+  const fileUpload = useFileUpload({
+    maxFiles: 1,
+    maxFileSize: 2 * 1024 * 1024, // 2MB
+    accept: {
+        "image/svg+xml": [".svg"],
+    },
+    onFileReject(details) {
+      console.error("File rejected:", details)
+    },
+  })
+
+  const onLoadClick = () => {
+    const file = fileUpload.acceptedFiles[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    setLoadedSvg(url);
+  }
 
   const [open, setOpen] = useState<boolean>(() => {
     // Check if user has visited before
@@ -97,7 +117,6 @@ export default function Hackenbush() {
     setLang(langMap[browserLang] || "English");
   }, []);
 
-  const { gamePath, gNumber, loading } = useGamePath();
   const { version } = useGameVersion();
   
   // Handle game state updates from the SVG component
@@ -257,7 +276,7 @@ export default function Hackenbush() {
                           <Button colorPalette="teal"><SiPix /> Pix</Button>
                         </Link>
                         <Link href="https://github.com/csamuelsm/hackenbush-game">
-                          <Button colorPalette="black"><FaGithubAlt /> Github</Button>
+                            <Button colorPalette="black"><FaGithubAlt /> Github</Button>
                         </Link>
                       </HStack>
                     </VStack>
@@ -297,28 +316,52 @@ export default function Hackenbush() {
         <Flex direction="column" alignItems="center" paddingY={3} align="stretch" justifyContent="space-between" height="100%">
           
           {/* Game Board - SVG Component */}
-          {loading ? 
-            (
-              <HStack gap={3}>
-                <Spinner color="blue.500" borderWidth="4px" />
-                <Text fontSize="xs" color="fg.muted">{t.loading}</Text>
-              </HStack>
-            ) 
-            : 
-            (
-              <SvgHackenbush
-                svgPath={gamePath}
+          {loadedSvg ? 
+          (
+            <>
+            <SvgHackenbush
+                svgPath={loadedSvg}
                 onGameStateChange={handleGameStateChange}
                 currentPlayer={currentPlayer}
                 resetTrigger={resetTrigger}
-              />
-            )}
-
-          {gNumber > 0 &&
+            />
+            </>
+          ) : (
             <>
-            <Text textStyle="xs" color="fg.muted" marginY={2}>
-              {`${t.game} #${gNumber}`}
-            </Text>
+            <Link colorPalette="blue" variant="underline" href="#">
+                <Text marginBottom={3} fontWeight="bold">
+                    {t.guide}
+                </Text>
+            </Link>
+            <FileUpload.RootProvider maxW="2xl" alignItems="stretch" value={fileUpload}>
+                <FileUpload.HiddenInput />
+                <FileUpload.Dropzone>
+                    <Icon size="md" color="fg.muted">
+                        <LuUpload />
+                    </Icon>
+                    <FileUpload.DropzoneContent>
+                    <Box>{t.drag_drop}</Box>
+                    <Box color="fg.muted">{t.svg_desc}</Box>
+                    </FileUpload.DropzoneContent>
+                </FileUpload.Dropzone>
+                <FileUpload.List />
+            </FileUpload.RootProvider>
+            <Button 
+                marginTop={3}
+                disabled={
+                    !(fileUpload.acceptedFiles.length > 0)
+                }
+                onClick={onLoadClick}
+                colorPalette="blue"
+            >
+                <LuUpload /> {t.load_game}
+            </Button>
+            </>
+          )
+        }
+
+          {loadedSvg &&
+            <>
             {!gameOver ? (
               <>
                 <Text textStyle="md">{t.current_player} 
@@ -347,11 +390,11 @@ export default function Hackenbush() {
                   {t.wins} 🎉</b>
               </Badge>
 
-              <SocialClipboard 
+              {/*<SocialClipboard 
                 lang={lang} won={gameOver && winner === player1Color}
                 color={player1Color}
                 version={version}
-              />
+              />*/}
               </>
             )}
             </>

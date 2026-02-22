@@ -33,7 +33,12 @@ type T = {
         how_to_play: string,
         old_games: string,
         // Loading,
-        loading: string
+        loading: string,
+        // Your-own
+        guide: string,
+        drag_drop: string,
+        svg_desc: string,
+        load_game: string
     }
 }
 
@@ -72,7 +77,12 @@ export const translations = {
         how_to_play: "How to play",
         old_games: "Old games",
         // Loading,
-        loading: "Loading..."
+        loading: "Loading...",
+        // Your-own
+        guide: "Check our guide to create your own games!",
+        drag_drop: "Drag and drop file here",
+        svg_desc: ".svg file with up to 2MB",
+        load_game: "Load game"
     },
 
     "Português": {
@@ -109,7 +119,12 @@ export const translations = {
         how_to_play: "Como jogar",
         old_games: "Jogos antigos",
         // Loading,
-        loading: "Carregando..."
+        loading: "Carregando...",
+        // Your-own
+        guide: "Confira nosso guia para criar seus próprios jogos!",
+        drag_drop: "Arraste e solte aqui",
+        svg_desc: "Arquivo .svg com até 2MB",
+        load_game: "Carregar jogo"
     },
 
     "Français": {
@@ -146,6 +161,11 @@ export const translations = {
         how_to_play: "Comment jouer",
         old_games: "Jeux anciens",
         // Loading,
-        loading: "Chargement..."
+        loading: "Chargement...",
+        // Your-own
+        guide: "Consultez notre guide pour créer vos propres jeux!",
+        drag_drop: "Glisser-déposer ici",
+        svg_desc: "Fichier .svg jusqu'à 2 MB",
+        load_game: "Charger le jeu"
     },
 }
