@@ -249,10 +249,10 @@ export default function Hackenbush() {
                     </VStack>
                   </Drawer.Body>
 
-                  <Drawer.Footer>
-                    {/*<Text fontSize="xs" color="fg.subtle" lineHeight="short">
+                  {/*<Drawer.Footer>
+                    <Text fontSize="xs" color="fg.subtle" lineHeight="short">
                       {t.description}
-                    </Text>*/}
+                    </Text>
                     <VStack textAlign="left">
                       <Text fontSize="sm" color="fg.subtle" lineHeight="short">
                         <b>{t.contribute}</b>
@@ -275,7 +275,7 @@ export default function Hackenbush() {
                         </Link>
                       </HStack>
                     </VStack>
-                  </Drawer.Footer>
+                  </Drawer.Footer>*/}
                 </Drawer.Content>
               </Drawer.Positioner>
             </Portal>
